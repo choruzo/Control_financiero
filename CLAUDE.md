@@ -108,6 +108,19 @@ Request → CORS Middleware → api/v1/{dominio}
 
 Solo `main.py`, `config.py` y `database.py` están implementados. Los módulos `models/`, `schemas/`, `api/v1/`, `services/`, `tasks/` y `utils/` están vacíos. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
 
+## Validación con tests
+
+**Todo cambio o implementación debe ir acompañado de tests.** Antes de considerar cualquier tarea completada:
+
+1. Escribir o actualizar los tests que cubran el código modificado.
+2. Ejecutar los tests y verificar que todos pasan.
+3. No se considera terminada ninguna implementación si no tiene tests que la validen.
+
+```bash
+# Ejecutar tests tras cada cambio
+docker compose -f docker-compose.dev.yml exec backend pytest --cov=app -v
+```
+
 ## Documentación
 
 Con cada cambio significativo o al completar una fase del roadmap, actualizar:
