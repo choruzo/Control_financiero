@@ -1,0 +1,51 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Docker volumes
+postgres_data/
+redis_data/
+
+# ML models (large files)
+ml-service/data/models/*.pt
+ml-service/data/models/*.bin
+ml-service/data/models/*.safetensors
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/.svelte-kit/
+frontend/build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Backups
+backups/
+
+# Coverage
+htmlcov/
+.coverage
+coverage.xml
