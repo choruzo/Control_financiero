@@ -7,11 +7,11 @@
 ## FASE 1: Fundamentos Backend (MVP Core)
 **Objetivo:** Backend funcional con CRUD completo, autenticación y base de datos.
 
-### 1.1 Infraestructura Base
-- [ ] Configurar Docker Compose (PostgreSQL + Redis + Backend)
-- [ ] Crear proyecto FastAPI con estructura de carpetas
-- [ ] Configurar SQLAlchemy 2.0 async + Alembic
-- [ ] Variables de entorno con pydantic-settings
+### 1.1 Infraestructura Base ✅
+- [x] Configurar Docker Compose (PostgreSQL + Redis + Backend)
+- [x] Crear proyecto FastAPI con estructura de carpetas
+- [x] Configurar SQLAlchemy 2.0 async + Alembic
+- [x] Variables de entorno con pydantic-settings
 - [ ] Logging estructurado
 
 ### 1.2 Autenticación
