@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from app.models.investment import Investment
     from app.models.mortgage import MortgageSimulation
     from app.models.refresh_token import RefreshToken
+    from app.models.tax import TaxConfig
     from app.models.transaction import Transaction
 
 
@@ -70,6 +71,11 @@ class User(Base):
     )
     mortgage_simulations: Mapped[list[MortgageSimulation]] = relationship(
         "MortgageSimulation",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    tax_configs: Mapped[list[TaxConfig]] = relationship(
+        "TaxConfig",
         back_populates="user",
         cascade="all, delete-orphan",
     )

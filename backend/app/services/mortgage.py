@@ -216,42 +216,50 @@ async def compare_scenarios(data: MortgageCompareRequest) -> MortgageCompareResp
 
 
 async def get_affordability(
-    db: AsyncSession, user_id: uuid.UUID
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    tax_config_id: uuid.UUID | None = None,
 ) -> AffordabilityResponse:
     """Calculate how much mortgage the user can afford based on their income.
 
-    Uses the last 3 months of income transactions to estimate monthly net income,
-    then applies the 35 % debt-to-income rule.
+    By default uses the last 3 months of income transactions to estimate monthly
+    net income. If *tax_config_id* is provided, uses the calculated net monthly
+    salary from the tax config instead (more accurate for salaried workers).
     """
-    from calendar import monthrange
-    from datetime import UTC, date, datetime
+    if tax_config_id is not None:
+        from app.services.tax import calculate_tax
 
-    today = datetime.now(UTC).date()
+        tax_result = await calculate_tax(db, user_id, tax_config_id)
+        monthly_income = tax_result.net_monthly
+    else:
+        from calendar import monthrange
+        from datetime import UTC, date, datetime
 
-    # Build a 3-month window ending this month
-    months: list[tuple[int, int]] = []
-    y, m = today.year, today.month
-    for _ in range(3):
-        months.append((y, m))
-        m -= 1
-        if m == 0:
-            m = 12
-            y -= 1
+        today = datetime.now(UTC).date()
 
-    total_income = Decimal("0.00")
-    for year, month in months:
-        _, last_day = monthrange(year, month)
-        result = await db.execute(
-            select(func.coalesce(func.sum(func.abs(Transaction.amount)), Decimal("0"))).where(
-                Transaction.user_id == user_id,
-                Transaction.transaction_type == "income",
-                Transaction.date >= date(year, month, 1),
-                Transaction.date <= date(year, month, last_day),
+        months: list[tuple[int, int]] = []
+        y, m = today.year, today.month
+        for _ in range(3):
+            months.append((y, m))
+            m -= 1
+            if m == 0:
+                m = 12
+                y -= 1
+
+        total_income = Decimal("0.00")
+        for year, month in months:
+            _, last_day = monthrange(year, month)
+            result = await db.execute(
+                select(func.coalesce(func.sum(func.abs(Transaction.amount)), Decimal("0"))).where(
+                    Transaction.user_id == user_id,
+                    Transaction.transaction_type == "income",
+                    Transaction.date >= date(year, month, 1),
+                    Transaction.date <= date(year, month, last_day),
+                )
             )
-        )
-        total_income += Decimal(str(result.scalar_one()))
+            total_income += Decimal(str(result.scalar_one()))
 
-    monthly_income = _q2(total_income / Decimal("3"))
+        monthly_income = _q2(total_income / Decimal("3"))
     max_monthly = _q2(monthly_income * Decimal("0.35"))
 
     # Generate affordability options for common scenarios

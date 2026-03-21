@@ -8,6 +8,7 @@ from app.api.v1 import (
     categories,
     investments,
     mortgage,
+    tax,
     transactions,
 )
 
@@ -20,3 +21,4 @@ router.include_router(budgets.router)
 router.include_router(investments.router)
 router.include_router(analytics.router)
 router.include_router(mortgage.router)
+router.include_router(tax.router)

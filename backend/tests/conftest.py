@@ -6,6 +6,8 @@ from sqlalchemy.pool import StaticPool
 import app.models  # noqa: F401 — registers models with Base.metadata
 from app.database import Base, get_db
 from app.main import app
+from app.services import categories as categories_service
+from app.services import tax as tax_service
 
 
 @pytest.fixture
@@ -20,6 +22,12 @@ async def client():
         await conn.run_sync(Base.metadata.create_all)
 
     session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+    # Seed system data into the test database
+    async with session_factory() as db:
+        await categories_service.seed_default_categories(db)
+        await tax_service.seed_tax_brackets(db)
+        await db.commit()
 
     async def override_get_db():
         async with session_factory() as session:

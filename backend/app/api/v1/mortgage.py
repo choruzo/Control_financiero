@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_current_user
@@ -47,15 +47,21 @@ async def compare_scenarios(
 
 @router.get("/affordability", response_model=AffordabilityResponse)
 async def get_affordability(
+    tax_config_id: uuid.UUID | None = Query(
+        None,
+        description="If provided, use net monthly salary from this tax config instead of "
+        "transaction-derived income.",
+    ),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> AffordabilityResponse:
     """Estimate the maximum mortgage amount based on the user's income.
 
-    Uses the last 3 months of income transactions to compute average monthly net
-    income, then applies the 35 % debt-to-income rule across common scenarios.
+    By default uses the last 3 months of income transactions to compute average
+    monthly net income. Pass *tax_config_id* to use the calculated net salary
+    from a saved tax configuration instead (more accurate for salaried workers).
     """
-    return await mortgage_service.get_affordability(db, current_user.id)
+    return await mortgage_service.get_affordability(db, current_user.id, tax_config_id)
 
 
 # ── Saved simulations CRUD ────────────────────────────────────────────────────

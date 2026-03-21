@@ -3,7 +3,14 @@
     "allow": [
       "Bash(xargs wc:*)",
       "Bash(find D:ArchivosJavierScritp_pythonControl_financiero/backend -name *.py -type f -exec wc -l {} +)",
-      "Bash(docker compose:*)"
+      "Bash(docker compose:*)",
+      "WebSearch",
+      "WebFetch(domain:www.boe.es)",
+      "WebFetch(domain:sede.agenciatributaria.gob.es)",
+      "WebFetch(domain:www.raisin.com)",
+      "WebFetch(domain:fiscaly.com)",
+      "WebFetch(domain:www.cuatrecasas.com)",
+      "WebFetch(domain:gsmb.es)"
     ]
   }
 }

@@ -10,6 +10,7 @@ from app.api.v1 import router as v1_router
 from app.config import settings
 from app.database import async_session
 from app.services import categories as categories_service
+from app.services import tax as tax_service
 from app.utils.logging import setup_logging
 
 setup_logging()
@@ -21,6 +22,7 @@ async def lifespan(app: FastAPI):
     logger.info("startup", app=settings.app_name, env=settings.app_env)
     async with async_session() as db:
         await categories_service.seed_default_categories(db)
+        await tax_service.seed_tax_brackets(db)
         await db.commit()
     yield
     logger.info("shutdown", app=settings.app_name)

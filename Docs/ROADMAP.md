@@ -92,11 +92,11 @@ updated: 2026-03-21
 - [x] Gastos asociados: notaría, registro, ITP/AJD, gestoría, tasación
 - [x] Comparador de escenarios (fijo vs variable vs mixto)
 
-### 2.5 Fiscalidad
-- [ ] Modelo TaxConfig con tramos IRPF por año
-- [ ] Cálculo bruto → neto (IRPF + Seguridad Social)
-- [ ] Seed con tramos IRPF vigentes (2025/2026)
-- [ ] Integración con simulador hipotecario (capacidad real de pago)
+### 2.5 Fiscalidad ✅
+- [x] Modelo TaxBracket (tramos IRPF sistema) + TaxConfig (configuración por usuario/año)
+- [x] Cálculo bruto → neto (IRPF + Seguridad Social): SS 6.35%/6.50% según año, reducción trabajo 2.000€, mínimo personal 5.550€
+- [x] Seed con tramos IRPF vigentes 2025/2026 (escala general y ahorro)
+- [x] Integración con simulador hipotecario: parámetro `tax_config_id` en `/mortgage/affordability`
 
 **Entregable:** Motor financiero completo con presupuestos, simulador hipotecario avanzado y analytics.
 

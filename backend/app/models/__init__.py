@@ -4,6 +4,7 @@ from app.models.category import Category
 from app.models.investment import Investment
 from app.models.mortgage import MortgageSimulation
 from app.models.refresh_token import RefreshToken
+from app.models.tax import TaxBracket, TaxConfig
 from app.models.transaction import Transaction
 from app.models.user import User
 
@@ -15,6 +16,8 @@ __all__ = [
     "Investment",
     "MortgageSimulation",
     "RefreshToken",
+    "TaxBracket",
+    "TaxConfig",
     "Transaction",
     "User",
 ]

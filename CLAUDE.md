@@ -150,6 +150,17 @@ Con la **Fase 2.3** se han añadido:
 - `api/v1/analytics.py` — router con 5 endpoints GET bajo `/analytics` (overview, cashflow, expenses-by-category, savings-rate, trends)
 - `tests/test_analytics.py` — 21 tests de integración
 
+Con la **Fase 2.5** se han añadido:
+
+- `models/tax.py` — modelos `TaxBracket` (tramos IRPF, tabla sistema, seeded) y `TaxConfig` (configuración bruto por usuario y año, `UniqueConstraint(user_id, tax_year)`)
+- `schemas/tax.py` — schemas Pydantic: `TaxBracketResponse`, `TaxConfigCreate/Update/Response`, `BracketBreakdown`, `TaxCalculationResponse`
+- `services/tax.py` — lógica: `seed_tax_brackets` (idempotente, 2025/2026 general+ahorro), CRUD de TaxConfig, `calculate_tax` (bruto→neto: SS 6.35%/6.50% según año, base máxima mensual, reducción trabajo 2.000€, mínimo personal 5.550€, tramos progresivos)
+- `api/v1/tax.py` — router con 7 endpoints bajo `/tax`: `GET /brackets`, `POST /configs`, `GET /configs`, `GET /configs/{id}`, `GET /configs/{id}/calculation`, `PATCH /configs/{id}`, `DELETE /configs/{id}`
+- `alembic/versions/0006_add_tax.py` — migración tablas `tax_brackets` y `tax_configs`
+- `tests/test_tax.py` — 26 tests de integración
+- `services/mortgage.py` y `api/v1/mortgage.py` — parámetro opcional `tax_config_id` en `GET /mortgage/affordability` para usar salario neto real en vez de ingresos de transacciones
+- `tests/conftest.py` — se añade llamada al seeder de tramos IRPF en la fixture de test (junto al seeder de categorías)
+
 Con la **Fase 2.4** se han añadido:
 
 - `utils/mortgage.py` — Motor de cálculo hipotecario puro (sin BD): `monthly_payment` (PMT sistema francés), `amortization_schedule` (fijo/variable/mixto con revisión anual o semestral), `effective_annual_rate` (TAE via Newton-Raphson), `closing_costs` (notaría, registro, ITP/AJD, gestoría, tasación)
