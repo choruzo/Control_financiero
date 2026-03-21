@@ -11,6 +11,7 @@ from app.database import Base
 
 if TYPE_CHECKING:
     from app.models.account import Account
+    from app.models.budget import Budget
     from app.models.category import Category
     from app.models.refresh_token import RefreshToken
     from app.models.transaction import Transaction
@@ -52,6 +53,11 @@ class User(Base):
     )
     transactions: Mapped[list[Transaction]] = relationship(
         "Transaction",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    budgets: Mapped[list[Budget]] = relationship(
+        "Budget",
         back_populates="user",
         cascade="all, delete-orphan",
     )

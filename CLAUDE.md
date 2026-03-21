@@ -124,6 +124,16 @@ Con la **Fase 1.4** se han añadido:
 - `tests/fixtures/openbank_sample.csv` — CSV de muestra para tests
 - `tests/test_imports.py` — 11 tests de importación
 
+Con la **Fase 2.1** se han añadido:
+
+- `models/budget.py` — modelos `Budget` y `BudgetAlert` con `UniqueConstraint(user_id, category_id, period_year, period_month)`
+- `schemas/budgets.py` — schemas Pydantic: `BudgetCreate`, `BudgetUpdate`, `BudgetResponse`, `BudgetStatusResponse`, `BudgetAlertResponse`
+- `services/budgets.py` — lógica CRUD + `get_budget_status` (suma gastos del período, calcula % consumido, crea alertas al superar el umbral configurable) + `list_alerts`/`mark_alert_read`
+- `api/v1/budgets.py` — router con 9 endpoints (CRUD + `/{id}/status` + `/status` listado por período + `/alerts` + `/alerts/{id}/read`)
+- `alembic/versions/0003_add_budgets.py` — migración tablas `budgets` y `budget_alerts`
+- `tests/test_budgets.py` — 18 tests
+- `docker-compose.dev.yml` — añadido volume mount `./backend/tests:/app/tests`
+
 Los módulos `tasks/` y `utils/` financieros (TIR, VAN, amortización, Monte Carlo) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
 
 ## Validación con tests

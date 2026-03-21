@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
 if TYPE_CHECKING:
+    from app.models.budget import Budget
     from app.models.transaction import Transaction
     from app.models.user import User
 
@@ -46,3 +47,4 @@ class Category(Base):
     )
     children: Mapped[list[Category]] = relationship("Category", back_populates="parent")
     transactions: Mapped[list[Transaction]] = relationship("Transaction", back_populates="category")
+    budgets: Mapped[list[Budget]] = relationship("Budget", back_populates="category")

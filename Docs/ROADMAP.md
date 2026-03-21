@@ -63,11 +63,11 @@ updated: 2026-03-21
 ## FASE 2: Lógica Financiera
 **Objetivo:** Cálculos financieros, presupuestos y simulador hipotecario.
 
-### 2.1 Presupuestos
-- [ ] Modelo Budget
-- [ ] CRUD de presupuestos mensuales por categoría
-- [ ] Cálculo de % consumido vs. límite
-- [ ] Alerta cuando se supera el umbral (almacenar para mostrar en frontend)
+### 2.1 Presupuestos ✅
+- [x] Modelo Budget
+- [x] CRUD de presupuestos mensuales por categoría
+- [x] Cálculo de % consumido vs. límite
+- [x] Alerta cuando se supera el umbral (almacenar para mostrar en frontend)
 
 ### 2.2 Inversiones
 - [ ] Modelo Investment (depósitos, fondos)
