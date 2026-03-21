@@ -1,9 +1,18 @@
 ﻿import logging
 import sys
+from typing import Any
 
 import structlog
 
 from app.config import settings
+
+
+def _add_logger_name(logger: Any, method: str, event_dict: dict) -> dict:
+    """Safely add logger name — works with both PrintLogger and stdlib Logger."""
+    name = getattr(logger, "name", None)
+    if name:
+        event_dict["logger"] = name
+    return event_dict
 
 
 def setup_logging() -> None:
@@ -15,7 +24,7 @@ def setup_logging() -> None:
     shared_processors: list[structlog.types.Processor] = [
         structlog.contextvars.merge_contextvars,
         structlog.stdlib.add_log_level,
-        structlog.stdlib.add_logger_name,
+        _add_logger_name,
         structlog.processors.TimeStamper(fmt="iso"),
         structlog.processors.StackInfoRenderer(),
     ]

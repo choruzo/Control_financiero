@@ -106,7 +106,16 @@ Request → CORS Middleware → api/v1/{dominio}
 
 ### Estado actual del proyecto
 
-Solo `main.py`, `config.py` y `database.py` están implementados. Los módulos `models/`, `schemas/`, `api/v1/`, `services/`, `tasks/` y `utils/` están vacíos. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
+`main.py`, `config.py`, `database.py` y `utils/logging.py` ya estaban implementados. Con la **Fase 1.2**, se han añadido:
+
+- `models/user.py` + `models/refresh_token.py` — modelos SQLAlchemy
+- `schemas/auth.py` — schemas Pydantic de auth
+- `services/auth.py` — hashing bcrypt, JWT, CRUD de usuario, rotación de refresh tokens
+- `api/v1/auth.py` — router: `POST /api/v1/auth/register`, `POST /login`, `POST /refresh`, `GET /me`
+- `api/v1/deps.py` — dependencia `get_current_user`
+- `alembic/versions/0001_create_users_and_refresh_tokens.py` — migración inicial
+
+Los módulos `schemas/` (salvo auth), `tasks/` y `utils/` (salvo logging) siguen vacíos. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
 
 ## Validación con tests
 

@@ -6,6 +6,7 @@ import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1 import router as v1_router
 from app.config import settings
 from app.utils.logging import setup_logging
 
@@ -60,3 +61,6 @@ async def request_logging_middleware(request: Request, call_next):
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "app": settings.app_name}
+
+
+app.include_router(v1_router, prefix="/api/v1")

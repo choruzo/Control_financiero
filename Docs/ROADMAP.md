@@ -35,11 +35,11 @@ updated: 2026-03-21
 - [x] Logging estructurado
 
 ### 1.2 Autenticación
-- [ ] Modelo User
-- [ ] Registro y login con JWT
-- [ ] Refresh tokens
-- [ ] Middleware de autenticación
-- [ ] Tests de auth
+- [x] Modelo User
+- [x] Registro y login con JWT
+- [x] Refresh tokens
+- [x] Middleware de autenticación
+- [x] Tests de auth
 
 ### 1.3 Modelos Core
 - [ ] Modelo Account (cuentas bancarias)
