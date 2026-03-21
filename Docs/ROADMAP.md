@@ -69,11 +69,11 @@ updated: 2026-03-21
 - [x] Cálculo de % consumido vs. límite
 - [x] Alerta cuando se supera el umbral (almacenar para mostrar en frontend)
 
-### 2.2 Inversiones
-- [ ] Modelo Investment (depósitos, fondos)
-- [ ] Registro de depósitos con interés y vencimiento
-- [ ] Cálculo de rendimiento (simple y compuesto)
-- [ ] Gestión de renovación de fondos
+### 2.2 Inversiones ✅
+- [x] Modelo Investment (depósitos, fondos)
+- [x] Registro de depósitos con interés y vencimiento
+- [x] Cálculo de rendimiento (simple y compuesto)
+- [x] Gestión de renovación de fondos
 
 ### 2.3 Analytics
 - [ ] Endpoint de resumen/overview (ingresos, gastos, ahorro del mes, balance)

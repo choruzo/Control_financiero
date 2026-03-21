@@ -134,6 +134,15 @@ Con la **Fase 2.1** se han añadido:
 - `tests/test_budgets.py` — 18 tests
 - `docker-compose.dev.yml` — añadido volume mount `./backend/tests:/app/tests`
 
+Con la **Fase 2.2** se han añadido:
+
+- `models/investment.py` — modelo `Investment` (depósitos, fondos, acciones, bonos) con campos: `investment_type`, `principal_amount`, `interest_rate`, `interest_type` (simple/compound), `compounding_frequency`, `start_date`, `maturity_date`, `auto_renew`, `renewal_period_months`, `renewals_count`, `current_value`
+- `schemas/investments.py` — schemas Pydantic: `InvestmentCreate` (con `@model_validator` para validar compound+frequency y maturity>start), `InvestmentUpdate`, `InvestmentResponse`, `InvestmentStatusResponse`, `InvestmentSummaryResponse`
+- `services/investments.py` — lógica CRUD + `_calculate_return` (interés simple y compuesto) + `get_investment_status` (rendimiento acumulado a día de hoy) + `renew_investment` (extiende maturity_date) + `get_investment_summary` (totales agregados)
+- `api/v1/investments.py` — router con 8 endpoints: `GET /summary`, `POST /`, `GET /`, `GET /{id}`, `GET /{id}/status`, `PATCH /{id}`, `DELETE /{id}`, `POST /{id}/renew`
+- `alembic/versions/0004_add_investments.py` — migración tabla `investments`
+- `tests/test_investments.py` — 23 tests
+
 Los módulos `tasks/` y `utils/` financieros (TIR, VAN, amortización, Monte Carlo) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
 
 ## Validación con tests
