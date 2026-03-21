@@ -165,89 +165,113 @@ updated: 2026-03-21
 │ is_active        │     │ results (JSONB)  │
 │ training_config  │     │ created_at       │
 └──────────────────┘     └──────────────────┘
+    (pendiente Fase 3.2)      (pendiente Fase 4.2)
 
-┌──────────────────────┐
-│  tax_config          │
-├──────────────────────┤
-│ id (PK)              │
-│ user_id (FK)         │
-│ year                 │
-│ irpf_brackets (JSONB)│  ←── [{min, max, rate}, ...]
-│ ss_rate              │
-│ deductions (JSONB)   │
-│ created_at           │
+┌──────────────────────┐     ┌──────────────────────┐
+│  tax_brackets        │     │  tax_configs         │
+├──────────────────────┤     ├──────────────────────┤
+│ id (PK)              │     │ id (PK)              │
+│ tax_year             │     │ user_id (FK)         │
+│ bracket_type         │     │ tax_year             │
+│   (general/ahorro)   │     │ gross_annual_salary  │
+│ system               │     │ is_active            │
+│ min_income           │     │ created_at           │
+│ max_income           │     └──────────────────────┘
+│ rate                 │     UniqueConstraint(user_id, tax_year)
 └──────────────────────┘
+  Seeded: 2025/2026
+  (general + ahorro)
 ```
 
-## 4. Endpoints API (Diseño Inicial)
+## 4. Endpoints API
+
+> Los endpoints marcados con ✅ están implementados. Los marcados con 🔜 están planificados para fases futuras.
 
 ```
-Auth:
+Auth: ✅
+  POST   /api/v1/auth/register
   POST   /api/v1/auth/login
   POST   /api/v1/auth/refresh
   GET    /api/v1/auth/me
+  POST   /api/v1/auth/logout
 
-Accounts:
+Accounts: ✅
   GET    /api/v1/accounts
   POST   /api/v1/accounts
+  GET    /api/v1/accounts/{id}
   PUT    /api/v1/accounts/{id}
   DELETE /api/v1/accounts/{id}
-  GET    /api/v1/accounts/{id}/balance-history
 
-Transactions:
-  GET    /api/v1/transactions               ?account_id=&category_id=&date_from=&date_to=&type=
+Transactions: ✅
+  GET    /api/v1/transactions               ?account_id=&category_id=&date_from=&date_to=&type=&skip=&limit=
   POST   /api/v1/transactions
-  POST   /api/v1/transactions/bulk           ←── importación CSV
+  GET    /api/v1/transactions/{id}
   PUT    /api/v1/transactions/{id}
   DELETE /api/v1/transactions/{id}
-  GET    /api/v1/transactions/summary        ←── resumen por periodo
-  PATCH  /api/v1/transactions/{id}/category  ←── recategorizar (feedback al modelo)
+  POST   /api/v1/transactions/import/csv    ←── importación CSV (?account_id=&dry_run=)
 
-Categories:
+Categories: ✅
   GET    /api/v1/categories
   POST   /api/v1/categories
+  GET    /api/v1/categories/{id}
   PUT    /api/v1/categories/{id}
   DELETE /api/v1/categories/{id}
 
-Budgets:
+Budgets: ✅
   GET    /api/v1/budgets                     ?year=&month=
   POST   /api/v1/budgets
-  PUT    /api/v1/budgets/{id}
+  GET    /api/v1/budgets/{id}
+  GET    /api/v1/budgets/{id}/status         ←── % consumido del presupuesto
+  PATCH  /api/v1/budgets/{id}
   DELETE /api/v1/budgets/{id}
-  GET    /api/v1/budgets/status              ←── % consumido por categoría
+  GET    /api/v1/budgets/status              ?period_year=&period_month=  ←── estado de todos los presupuestos
+  GET    /api/v1/budgets/alerts
+  PATCH  /api/v1/budgets/alerts/{id}/read
 
-Investments:
-  GET    /api/v1/investments
+Investments: ✅
+  GET    /api/v1/investments/summary         ←── rendimiento total agregado
   POST   /api/v1/investments
-  PUT    /api/v1/investments/{id}
+  GET    /api/v1/investments
+  GET    /api/v1/investments/{id}
+  GET    /api/v1/investments/{id}/status     ←── rendimiento acumulado a hoy
+  PATCH  /api/v1/investments/{id}
   DELETE /api/v1/investments/{id}
-  GET    /api/v1/investments/summary         ←── rendimiento total
+  POST   /api/v1/investments/{id}/renew      ←── renovar depósito
 
-Mortgage Simulator:
-  POST   /api/v1/mortgage/simulate           ←── cálculo de cuotas
-  POST   /api/v1/mortgage/affordability      ←── máxima hipoteca permitida
-  POST   /api/v1/mortgage/compare            ←── comparar escenarios fijo vs variable
-  GET    /api/v1/mortgage/simulations        ←── simulaciones guardadas
+Mortgage Simulator: ✅
+  POST   /api/v1/mortgage/simulate           ←── cálculo de cuotas + tabla de amortización
+  POST   /api/v1/mortgage/compare            ←── compara hasta 5 escenarios
+  GET    /api/v1/mortgage/affordability      ?months=&tax_config_id=  ←── máxima hipoteca permitida
   POST   /api/v1/mortgage/simulations        ←── guardar simulación
+  GET    /api/v1/mortgage/simulations
+  GET    /api/v1/mortgage/simulations/{id}
+  DELETE /api/v1/mortgage/simulations/{id}
 
-Analytics / Dashboard:
-  GET    /api/v1/analytics/overview          ←── KPIs principales
-  GET    /api/v1/analytics/cashflow          ?period=monthly&months=12
-  GET    /api/v1/analytics/expenses-by-cat   ?date_from=&date_to=
-  GET    /api/v1/analytics/savings-rate      ?months=12
-  GET    /api/v1/analytics/trends            ←── tendencias temporales
+Analytics: ✅
+  GET    /api/v1/analytics/overview          ←── KPIs: ingresos/gastos/ahorro/balance
+  GET    /api/v1/analytics/cashflow          ?months=
+  GET    /api/v1/analytics/expenses-by-category  ?date_from=&date_to=
+  GET    /api/v1/analytics/savings-rate      ?months=
+  GET    /api/v1/analytics/trends            ←── cambio % vs mes anterior y vs media 12m
 
-ML / Predictions:
-  POST   /api/v1/ml/categorize               ←── categorizar transacción(es)
+Tax: ✅
+  GET    /api/v1/tax/brackets                ←── tramos IRPF seeded (2025/2026)
+  POST   /api/v1/tax/configs
+  GET    /api/v1/tax/configs
+  GET    /api/v1/tax/configs/{id}
+  GET    /api/v1/tax/configs/{id}/calculation  ←── bruto → neto con IRPF + SS
+  PATCH  /api/v1/tax/configs/{id}
+  DELETE /api/v1/tax/configs/{id}
+
+ML (infraestructura, modelo pendiente Fase 3.2): ✅
+  POST   /api/v1/ml/predict                  ←── predice categoría (stub hasta Fase 3.2)
+  POST   /api/v1/ml/feedback                 ←── feedback usuario (almacenamiento pendiente Fase 3.3)
+  GET    /api/v1/ml/status                   ←── estado del modelo
+
+ML (endpoints pendientes Fase 4): 🔜
   GET    /api/v1/ml/predictions/cashflow     ?months_ahead=12
   POST   /api/v1/ml/scenarios/simulate       ←── "¿qué pasa si...?"
-  GET    /api/v1/ml/models/status            ←── estado de los modelos
   POST   /api/v1/ml/models/retrain           ←── forzar reentrenamiento
-
-Tax:
-  GET    /api/v1/tax/config                  ?year=
-  PUT    /api/v1/tax/config
-  POST   /api/v1/tax/calculate-net           ←── bruto → neto con IRPF+SS
 ```
 
 ## 5. Estrategia ML/IA
@@ -294,6 +318,19 @@ Motor basado en reglas + Monte Carlo:
 - Simular N escenarios con variabilidad
 - Devolver distribución de resultados (percentiles P10, P50, P90)
 
+### 5.4 Microservicio ML (Fase 3.1 — infraestructura operativa)
+
+El ml-service es un proceso FastAPI independiente que corre en el puerto 8001 dentro de Docker Compose, con acceso a GPU via `nvidia` runtime. Su API interna (consumida por el backend a través de `MLClient`) ya está desplegada en forma de stubs:
+
+| Endpoint | Descripción | Estado |
+|---|---|---|
+| `GET /health` | Health check; indica si el modelo está cargado | ✅ stub |
+| `POST /predict` | Recibe descripción → devuelve categoría + confianza | ✅ stub (Fase 3.2 añade modelo real) |
+| `POST /feedback` | Recibe corrección del usuario para reentrenamiento | ✅ stub (Fase 3.3 añade persistencia) |
+| `GET /model/status` | Versión, accuracy y fecha de último training | ✅ stub |
+
+El backend consume estos endpoints a través de `MLClient` con **degradación graceful**: si el ml-service no está disponible, devuelve respuestas con `ml_available=False` sin interrumpir el flujo principal de la aplicación.
+
 ## 6. Seguridad
 
 - **Autenticación:** JWT con refresh tokens, bcrypt para passwords
@@ -307,14 +344,13 @@ Motor basado en reglas + Monte Carlo:
 
 ```
 Control_financiero/
-├── docker-compose.yml
 ├── docker-compose.dev.yml
 ├── .env.example
 ├── README.md
-├── docs/
+├── CLAUDE.md
+├── Docs/
 │   ├── ARCHITECTURE.md          ← este archivo
-│   ├── API.md
-│   └── DEVELOPMENT.md
+│   └── ROADMAP.md
 │
 ├── backend/
 │   ├── Dockerfile
@@ -322,32 +358,41 @@ Control_financiero/
 │   ├── alembic.ini
 │   ├── alembic/
 │   │   └── versions/
+│   │       ├── 0001_create_users_and_refresh_tokens.py
+│   │       ├── 0002_add_accounts_categories_transactions.py
+│   │       ├── 0003_add_budgets.py
+│   │       ├── 0004_add_investments.py
+│   │       ├── 0005_add_mortgage_simulations.py
+│   │       └── 0006_add_tax.py
 │   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py              ← FastAPI app
-│   │   ├── config.py            ← Settings (pydantic-settings)
-│   │   ├── database.py          ← Engine, session
-│   │   ├── models/              ← SQLAlchemy models
-│   │   │   ├── __init__.py
+│   │   ├── main.py              ← FastAPI app, CORS, lifespan (seeder categorías + tramos IRPF)
+│   │   ├── config.py            ← Settings (pydantic-settings), property database_url
+│   │   ├── database.py          ← Engine SQLAlchemy async, get_db dependency
+│   │   ├── models/
 │   │   │   ├── user.py
+│   │   │   ├── refresh_token.py
 │   │   │   ├── account.py
 │   │   │   ├── transaction.py
 │   │   │   ├── category.py
-│   │   │   ├── budget.py
+│   │   │   ├── budget.py        ← Budget + BudgetAlert
 │   │   │   ├── investment.py
-│   │   │   ├── mortgage.py
-│   │   │   └── tax.py
-│   │   ├── schemas/             ← Pydantic schemas
-│   │   │   ├── __init__.py
+│   │   │   ├── mortgage.py      ← MortgageSimulation
+│   │   │   └── tax.py           ← TaxBracket + TaxConfig
+│   │   ├── schemas/
 │   │   │   ├── auth.py
-│   │   │   ├── transaction.py
-│   │   │   └── ...
+│   │   │   ├── accounts.py
+│   │   │   ├── transactions.py
+│   │   │   ├── categories.py
+│   │   │   ├── imports.py       ← ImportResult, ImportRowResult
+│   │   │   ├── budgets.py
+│   │   │   ├── investments.py
+│   │   │   ├── mortgage.py
+│   │   │   ├── analytics.py
+│   │   │   ├── ml.py            ← MLPredictRequest/Response, MLFeedbackRequest/Response
+│   │   │   └── tax.py
 │   │   ├── api/
-│   │   │   ├── __init__.py
-│   │   │   ├── deps.py          ← Dependencias (get_db, get_current_user)
+│   │   │   ├── deps.py          ← get_db, get_current_user
 │   │   │   └── v1/
-│   │   │       ├── __init__.py
-│   │   │       ├── router.py    ← Router principal v1
 │   │   │       ├── auth.py
 │   │   │       ├── accounts.py
 │   │   │       ├── transactions.py
@@ -356,79 +401,62 @@ Control_financiero/
 │   │   │       ├── investments.py
 │   │   │       ├── mortgage.py
 │   │   │       ├── analytics.py
-│   │   │       ├── ml.py
+│   │   │       ├── ml.py        ← proxy al ml-service con degradación graceful
 │   │   │       └── tax.py
-│   │   ├── services/            ← Lógica de negocio
-│   │   │   ├── __init__.py
-│   │   │   ├── auth_service.py
-│   │   │   ├── transaction_service.py
-│   │   │   ├── mortgage_service.py
-│   │   │   ├── analytics_service.py
-│   │   │   └── tax_service.py
-│   │   ├── tasks/               ← Celery tasks
-│   │   │   ├── __init__.py
-│   │   │   └── ml_tasks.py
+│   │   ├── services/
+│   │   │   ├── auth.py
+│   │   │   ├── accounts.py
+│   │   │   ├── transactions.py
+│   │   │   ├── categories.py    ← incluye seeder de categorías por defecto
+│   │   │   ├── imports.py       ← lógica de importación CSV con deduplicación
+│   │   │   ├── budgets.py
+│   │   │   ├── investments.py
+│   │   │   ├── mortgage.py
+│   │   │   ├── analytics.py
+│   │   │   ├── ml_client.py     ← MLClient: HTTP async con degradación graceful
+│   │   │   └── tax.py           ← incluye seeder de tramos IRPF
+│   │   ├── tasks/               ← Celery tasks (pendiente Fase 3.3)
+│   │   │   └── __init__.py
 │   │   └── utils/
-│   │       ├── __init__.py
-│   │       └── financial.py     ← Funciones financieras (TIR, VAN, amortización)
+│   │       ├── csv_parser.py    ← Parser CSV OpenBank (sep `;`, fecha DD/MM/YYYY)
+│   │       ├── mortgage.py      ← Cálculos: PMT, amortización, TAE, closing_costs
+│   │       └── logging.py       ← Logging estructurado (structlog)
 │   └── tests/
 │       ├── conftest.py
+│       ├── fixtures/
+│       │   └── openbank_sample.csv
 │       ├── test_auth.py
+│       ├── test_accounts.py
 │       ├── test_transactions.py
-│       └── ...
+│       ├── test_imports.py
+│       ├── test_categories.py
+│       ├── test_budgets.py
+│       ├── test_investments.py
+│       ├── test_mortgage.py
+│       ├── test_analytics.py
+│       ├── test_ml_client.py
+│       └── test_tax.py
 │
 ├── ml-service/
-│   ├── Dockerfile
+│   ├── Dockerfile               ← pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime, usuario no-root
 │   ├── pyproject.toml
 │   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py              ← FastAPI app del servicio ML
-│   │   ├── config.py
-│   │   ├── models/
-│   │   │   ├── categorizer.py   ← DistilBERT categorización
-│   │   │   ├── forecaster.py    ← LSTM predicción
-│   │   │   └── scenarios.py     ← Motor de escenarios
-│   │   ├── training/
-│   │   │   ├── train_categorizer.py
-│   │   │   ├── train_forecaster.py
-│   │   │   └── datasets.py
-│   │   └── api/
-│   │       ├── __init__.py
-│   │       └── endpoints.py
-│   ├── data/
-│   │   └── pretrained/          ← Modelos pre-entrenados
+│   │   ├── main.py              ← FastAPI, middleware logging, lifespan (placeholder modelo)
+│   │   ├── config.py            ← model_path, thresholds (0.85/0.5), redis_url
+│   │   ├── routers/
+│   │   │   ├── health.py        ← GET /health
+│   │   │   ├── predict.py       ← POST /predict  (stub Fase 3.1, real en Fase 3.2)
+│   │   │   ├── feedback.py      ← POST /feedback (stub Fase 3.1, persiste en Fase 3.3)
+│   │   │   └── model.py         ← GET /model/status
+│   │   └── schemas/
+│   │       ├── predict.py       ← PredictRequest, PredictResponse
+│   │       ├── feedback.py      ← FeedbackRequest, FeedbackResponse
+│   │       └── model.py         ← ModelStatusResponse
 │   └── tests/
+│       ├── conftest.py
+│       ├── test_health.py
+│       └── test_predict.py
 │
-├── frontend/
-│   ├── Dockerfile
-│   ├── package.json
-│   ├── svelte.config.js
-│   ├── vite.config.ts
-│   ├── tsconfig.json
-│   ├── src/
-│   │   ├── app.html
-│   │   ├── app.css
-│   │   ├── lib/
-│   │   │   ├── api/             ← Cliente API
-│   │   │   ├── components/      ← Componentes reutilizables
-│   │   │   │   ├── charts/
-│   │   │   │   ├── forms/
-│   │   │   │   └── layout/
-│   │   │   ├── stores/          ← Svelte stores
-│   │   │   └── utils/
-│   │   └── routes/
-│   │       ├── +layout.svelte
-│   │       ├── +page.svelte     ← Dashboard principal
-│   │       ├── login/
-│   │       ├── transactions/
-│   │       ├── budgets/
-│   │       ├── investments/
-│   │       ├── mortgage/
-│   │       ├── predictions/
-│   │       └── settings/
-│   └── static/
-│
-└── nginx/
-    ├── nginx.conf
-    └── Dockerfile
+└── frontend/                    ← Pendiente Fase 5
+    └── (por implementar)
 ```

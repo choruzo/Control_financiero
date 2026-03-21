@@ -105,7 +105,7 @@ updated: 2026-03-21
 ## FASE 3: ML Service - Categorización Automática
 **Objetivo:** Servicio de IA para categorización automática de transacciones.
 
-### 3.1 Infraestructura ML
+### 3.1 Infraestructura ML ✅
 - [x] Crear microservicio ml-service con FastAPI
 - [x] Dockerfile con soporte CUDA (nvidia/cuda base image)
 - [x] Configurar acceso GPU en docker-compose (nvidia runtime)

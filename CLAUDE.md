@@ -171,6 +171,24 @@ Con la **Fase 2.4** se han añadido:
 - `alembic/versions/0005_add_mortgage_simulations.py` — Migración tabla `mortgage_simulations`
 - `tests/test_mortgage.py` — 26 tests de integración
 
+Con la **Fase 3.1** se han añadido:
+
+- `ml-service/` — Microservicio FastAPI dedicado a ML (port 8001), independiente del backend
+- `ml-service/Dockerfile` — Imagen base `pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime`, usuario no-root
+- `ml-service/app/main.py` — App FastAPI con middleware de logging estructurado y lifespan (placeholder para carga de modelo en Fase 3.2)
+- `ml-service/app/config.py` — Settings: `model_path`, `categorization_threshold` (0.85), `categorization_suggest_threshold` (0.5), `redis_url` (db 3)
+- `ml-service/app/routers/health.py` — `GET /health` (stub: `model_loaded=False`)
+- `ml-service/app/routers/predict.py` — `POST /predict` (stub: devuelve respuesta sin modelo cargado)
+- `ml-service/app/routers/feedback.py` — `POST /feedback` (registra evento en log; almacenamiento pendiente en Fase 3.3)
+- `ml-service/app/routers/model.py` — `GET /model/status` (stub: `loaded=False`)
+- `ml-service/app/schemas/` — `PredictRequest/Response`, `FeedbackRequest/Response`, `ModelStatusResponse`
+- `backend/app/schemas/ml.py` — `MLPredictRequest/Response`, `MLFeedbackRequest/Response` (campo `ml_available` para degradación graceful)
+- `backend/app/services/ml_client.py` — `MLClient`: cliente HTTP async con degradación graceful (si el servicio no está disponible devuelve respuestas stub sin interrumpir el flujo principal)
+- `backend/app/api/v1/ml.py` — Router con 3 endpoints protegidos: `POST /ml/predict`, `POST /ml/feedback`, `GET /ml/status`
+- `docker-compose.dev.yml` — ml-service con soporte GPU (`nvidia` runtime), volume persistente `ml_models:/app/models`, health check, dependencia de Redis
+- `ml-service/tests/test_health.py`, `ml-service/tests/test_predict.py` — 9 tests de infraestructura (stubs + validaciones)
+- `backend/tests/test_ml_client.py` — Tests del cliente ML con mock `respx` (sin dependencia del servicio real)
+
 Los módulos `tasks/` y `utils/` financieros (TIR, VAN, Monte Carlo) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
 
 ## Validación con tests
