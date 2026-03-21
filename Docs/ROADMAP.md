@@ -1,4 +1,24 @@
+---
+title: FinControl - Roadmap de Desarrollo
+aliases:
+  - Roadmap
+  - Plan de desarrollo
+tags:
+  - fincontrol
+  - roadmap
+  - planificacion
+  - fases
+related:
+  - "[[ARCHITECTURE]]"
+status: en-progreso
+created: 2026-03-21
+updated: 2026-03-21
+---
+
 # FinControl - Roadmap de Desarrollo
+
+> [!info] Documentación relacionada
+> - [[ARCHITECTURE|Arquitectura del Sistema]] — Stack tecnológico, modelo de datos, endpoints API y estrategia ML
 
 ## Fases del Proyecto
 

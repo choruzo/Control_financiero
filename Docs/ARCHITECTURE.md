@@ -1,4 +1,26 @@
+---
+title: FinControl - Arquitectura del Sistema
+aliases:
+  - Arquitectura
+  - Architecture
+tags:
+  - fincontrol
+  - arquitectura
+  - backend
+  - frontend
+  - ml
+  - base-de-datos
+related:
+  - "[[ROADMAP]]"
+status: activo
+created: 2026-03-21
+updated: 2026-03-21
+---
+
 # FinControl - Arquitectura del Sistema
+
+> [!info] Documentación relacionada
+> - [[ROADMAP|Roadmap de Desarrollo]] — Fases, tareas y progreso del proyecto
 
 ## 1. Visión General
 
