@@ -143,6 +143,13 @@ Con la **Fase 2.2** se han añadido:
 - `alembic/versions/0004_add_investments.py` — migración tabla `investments`
 - `tests/test_investments.py` — 23 tests
 
+Con la **Fase 2.3** se han añadido:
+
+- `schemas/analytics.py` — schemas Pydantic: `OverviewResponse`, `CashflowMonthResponse`, `CategoryExpenseResponse`, `SavingsRateMonthResponse`, `TrendsResponse`
+- `services/analytics.py` — lógica de agregación con SQLAlchemy async: `get_overview` (ingresos/gastos/ahorro/balance total de cuentas activas), `get_cashflow` (últimos N meses con ceros para meses sin datos), `get_expenses_by_category` (agrupado con % del total), `get_savings_rate` (tasa mensual + medias móviles 3m y 6m), `get_trends` (cambio % vs mes anterior y vs media 12 meses)
+- `api/v1/analytics.py` — router con 5 endpoints GET bajo `/analytics` (overview, cashflow, expenses-by-category, savings-rate, trends)
+- `tests/test_analytics.py` — 21 tests de integración
+
 Los módulos `tasks/` y `utils/` financieros (TIR, VAN, amortización, Monte Carlo) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
 
 ## Validación con tests

@@ -75,12 +75,12 @@ updated: 2026-03-21
 - [x] Cálculo de rendimiento (simple y compuesto)
 - [x] Gestión de renovación de fondos
 
-### 2.3 Analytics
-- [ ] Endpoint de resumen/overview (ingresos, gastos, ahorro del mes, balance)
-- [ ] Cash flow mensual (últimos N meses)
-- [ ] Gastos agrupados por categoría y periodo
-- [ ] Tasa de ahorro mensual y media móvil
-- [ ] Tendencias (comparación mes actual vs. anterior, vs. media)
+### 2.3 Analytics ✅
+- [x] Endpoint de resumen/overview (ingresos, gastos, ahorro del mes, balance)
+- [x] Cash flow mensual (últimos N meses)
+- [x] Gastos agrupados por categoría y periodo
+- [x] Tasa de ahorro mensual y media móvil
+- [x] Tendencias (comparación mes actual vs. anterior, vs. media)
 
 ### 2.4 Simulador Hipotecario
 - [ ] Motor de cálculo: sistema francés de amortización
