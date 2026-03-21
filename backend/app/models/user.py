@@ -10,7 +10,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
 if TYPE_CHECKING:
+    from app.models.account import Account
+    from app.models.category import Category
     from app.models.refresh_token import RefreshToken
+    from app.models.transaction import Transaction
 
 
 class User(Base):
@@ -34,6 +37,21 @@ class User(Base):
 
     refresh_tokens: Mapped[list[RefreshToken]] = relationship(
         "RefreshToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    accounts: Mapped[list[Account]] = relationship(
+        "Account",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    categories: Mapped[list[Category]] = relationship(
+        "Category",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    transactions: Mapped[list[Transaction]] = relationship(
+        "Transaction",
         back_populates="user",
         cascade="all, delete-orphan",
     )

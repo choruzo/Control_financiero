@@ -41,14 +41,14 @@ updated: 2026-03-21
 - [x] Middleware de autenticación
 - [x] Tests de auth
 
-### 1.3 Modelos Core
-- [ ] Modelo Account (cuentas bancarias)
-- [ ] Modelo Category (categorías jerárquicas con subcategorías)
-- [ ] Modelo Transaction (transacciones con recurrencia)
-- [ ] Seeders: categorías por defecto (Alimentación, Transporte, Ocio, Hogar, Salud, etc.)
-- [ ] CRUD completo para cada modelo
-- [ ] Filtros y paginación en transacciones
-- [ ] Tests unitarios e integración
+### 1.3 Modelos Core ✅
+- [x] Modelo Account (cuentas bancarias)
+- [x] Modelo Category (categorías jerárquicas con subcategorías)
+- [x] Modelo Transaction (transacciones con recurrencia)
+- [x] Seeders: categorías por defecto (Alimentación, Transporte, Ocio, Hogar, Salud, etc.)
+- [x] CRUD completo para cada modelo
+- [x] Filtros y paginación en transacciones
+- [x] Tests unitarios e integración
 
 ### 1.4 Importación de Datos
 - [ ] Endpoint de importación CSV

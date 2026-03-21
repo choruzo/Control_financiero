@@ -106,16 +106,16 @@ Request → CORS Middleware → api/v1/{dominio}
 
 ### Estado actual del proyecto
 
-`main.py`, `config.py`, `database.py` y `utils/logging.py` ya estaban implementados. Con la **Fase 1.2**, se han añadido:
+`main.py`, `config.py`, `database.py` y `utils/logging.py` ya estaban implementados. Con la **Fase 1.2** se añadió autenticación JWT completa. Con la **Fase 1.3** se han añadido:
 
-- `models/user.py` + `models/refresh_token.py` — modelos SQLAlchemy
-- `schemas/auth.py` — schemas Pydantic de auth
-- `services/auth.py` — hashing bcrypt, JWT, CRUD de usuario, rotación de refresh tokens
-- `api/v1/auth.py` — router: `POST /api/v1/auth/register`, `POST /login`, `POST /refresh`, `GET /me`
-- `api/v1/deps.py` — dependencia `get_current_user`
-- `alembic/versions/0001_create_users_and_refresh_tokens.py` — migración inicial
+- `models/account.py`, `models/category.py`, `models/transaction.py` — modelos SQLAlchemy
+- `schemas/accounts.py`, `schemas/categories.py`, `schemas/transactions.py` — schemas Pydantic
+- `services/accounts.py`, `services/categories.py` (con seeder), `services/transactions.py` — lógica de negocio
+- `api/v1/accounts.py`, `api/v1/categories.py`, `api/v1/transactions.py` — routers CRUD
+- `alembic/versions/0002_add_accounts_categories_transactions.py` — migración
+- Seeder de categorías por defecto ejecutado en lifespan de FastAPI
 
-Los módulos `schemas/` (salvo auth), `tasks/` y `utils/` (salvo logging) siguen vacíos. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
+Los módulos `tasks/` y `utils/` (salvo logging) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
 
 ## Validación con tests
 
