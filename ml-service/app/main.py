@@ -6,6 +6,7 @@ import structlog
 from fastapi import FastAPI, Request
 
 from app.config import settings
+from app.ml.model_manager import ModelManager
 from app.routers import feedback, health, model, predict
 
 structlog.configure(
@@ -22,8 +23,16 @@ logger = structlog.get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("startup", app=settings.app_name, env=settings.app_env, model_loaded=False)
-    # Fase 3.2: aquí se cargará el modelo DistilBERT
+    manager = ModelManager(model_path=settings.model_path, device=settings.device)
+    await manager.load()
+    app.state.model_manager = manager
+    logger.info(
+        "startup",
+        app=settings.app_name,
+        env=settings.app_env,
+        model_loaded=manager.loaded,
+        model_version=manager.metadata.get("version", "none"),
+    )
     yield
     logger.info("shutdown", app=settings.app_name)
 

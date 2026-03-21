@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 
     # ML
     model_path: str = "/app/models"
+    device: str = "cpu"
     categorization_threshold: float = 0.85
     categorization_suggest_threshold: float = 0.5
 

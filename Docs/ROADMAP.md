@@ -111,14 +111,15 @@ updated: 2026-03-21
 - [x] Configurar acceso GPU en docker-compose (nvidia runtime)
 - [x] Comunicación backend ↔ ml-service via HTTP interno
 
-### 3.2 Categorización
-- [ ] Descargar y preparar DistilBERT multilingüe
-- [ ] Crear dataset sintético de transacciones bancarias españolas
-- [ ] Pipeline de preprocessing (normalizar conceptos bancarios)
-- [ ] Fine-tuning del modelo con dataset inicial
-- [ ] API de inferencia: POST /predict con descripción → categoría + confianza
-- [ ] Lógica de umbral: auto-asignar si confianza > 0.85, sugerir si > 0.5
-- [ ] Endpoint de feedback: usuario confirma/corrige → almacenar para retraining
+### 3.2 Categorización ✅
+- [x] Descargar y preparar DistilBERT multilingüe (`distilbert-base-multilingual-cased`)
+- [x] Crear dataset sintético de transacciones bancarias españolas (`ml-service/data/synthetic_dataset.py`, 250 ejemplos, 10 categorías)
+- [x] Pipeline de preprocessing (`ml-service/app/ml/preprocessor.py`: normalizar referencias, fechas, ruido)
+- [x] Fine-tuning del modelo con dataset inicial (`ml-service/scripts/train.py`)
+- [x] API de inferencia: POST /predict con descripción → categoría + confianza (`ml-service/app/ml/model_manager.py`)
+- [x] Lógica de umbral: auto-asignar si confianza > 0.85, sugerir si > 0.5 (configurable en `ml-service/app/config.py`)
+- [x] Endpoint de feedback: usuario confirma/corrige → almacenar en Redis `ml:feedback` para retraining
+- [x] Integración automática en `POST /transactions` del backend: auto-asigna o sugiere categoría vía ML
 
 ### 3.3 Reentrenamiento Automático
 - [ ] Celery task para reentrenamiento incremental

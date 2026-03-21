@@ -60,8 +60,8 @@ async def create_transaction(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> TransactionResponse:
-    """Create a new transaction."""
-    return await transactions_service.create_transaction(db, current_user.id, body)
+    """Crea una transacción. Si no se indica category_id, el servicio ML intentará categorizarla automáticamente."""
+    return await transactions_service.create_transaction_with_ml(db, current_user.id, body)
 
 
 @router.get("", response_model=PaginatedTransactions)

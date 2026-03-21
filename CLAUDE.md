@@ -189,6 +189,28 @@ Con la **Fase 3.1** se han añadido:
 - `ml-service/tests/test_health.py`, `ml-service/tests/test_predict.py` — 9 tests de infraestructura (stubs + validaciones)
 - `backend/tests/test_ml_client.py` — Tests del cliente ML con mock `respx` (sin dependencia del servicio real)
 
+Con la **Fase 3.2** se han añadido:
+
+- `ml-service/app/ml/__init__.py` — módulo ML
+- `ml-service/app/ml/categories.py` — catálogo fijo de 10 categorías del sistema con mapeo índice↔nombre (ML service no tiene acceso a BD)
+- `ml-service/app/ml/preprocessor.py` — `normalize_banking_text()`: normaliza texto bancario (referencias numéricas, fechas, ruido)
+- `ml-service/app/ml/model_manager.py` — `ModelManager`: singleton que carga DistilBERT desde `/app/models/categorizer/`, expone `predict()` y `get_status()`; modo degradado si no hay modelo
+- `ml-service/data/synthetic_dataset.py` — genera `data/dataset.json` con 250 ejemplos de transacciones bancarias españolas (25 por categoría)
+- `ml-service/scripts/train.py` — fine-tuning de `distilbert-base-multilingual-cased` con el dataset; guarda modelo + metadata en `/app/models/categorizer/`
+- `ml-service/app/routers/predict.py` — stub reemplazado: inferencia real via `ModelManager.predict()`; thresholds 0.85/0.5 configurables
+- `ml-service/app/routers/feedback.py` — stub reemplazado: almacena feedback en Redis (lista `ml:feedback`) para reentrenamiento (Fase 3.3)
+- `ml-service/app/routers/health.py`, `model.py` — actualizados con estado real de `ModelManager`
+- `ml-service/app/main.py` — lifespan carga `ModelManager` e inyecta en `app.state.model_manager`
+- `ml-service/app/config.py` — añadido campo `device: str = "cpu"` (soporte GPU/CPU)
+- `ml-service/pyproject.toml` — corrección build backend a `setuptools.build_meta` (compatible con Python 3.11 de la imagen pytorch)
+- `ml-service/tests/conftest.py` — inicializa `ModelManager` degradado en `app.state` antes de los tests (ASGITransport no dispara lifespan)
+- `ml-service/tests/test_predict.py` — actualizado a comportamiento modo degradado (`model_version="degraded"`, `status in ("stored","queued")`)
+- `ml-service/tests/test_categorization.py` — 18 nuevos tests: catálogo de categorías, preprocessor, ModelManager degradado, endpoints API
+- `backend/app/schemas/transactions.py` — `TransactionResponse` añade `ml_suggested_category_id: UUID | None` y `ml_confidence: float | None`
+- `backend/app/services/transactions.py` — nueva función `create_transaction_with_ml()`: crea transacción y llama ML; auto-asigna categoría si confianza > 0.85, devuelve sugerencia si > 0.5
+- `backend/app/api/v1/transactions.py` — `POST /transactions` usa `create_transaction_with_ml()` en lugar de `create_transaction()`
+- `backend/tests/test_transactions.py` — 5 nuevos tests de integración ML con respx (auto-asignación, sugerencia, campos ML en respuesta, skip cuando hay categoría explícita)
+
 Los módulos `tasks/` y `utils/` financieros (TIR, VAN, Monte Carlo) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
 
 ## Validación con tests

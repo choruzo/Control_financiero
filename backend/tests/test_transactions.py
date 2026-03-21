@@ -1,4 +1,29 @@
-from httpx import AsyncClient
+import respx
+from httpx import AsyncClient, Response
+
+ML_BASE = "http://ml-service:8001"
+
+
+def _ml_auto_assign_payload(category_name: str = "Alimentación", category_id: int = 0) -> dict:
+    return {
+        "category_id": category_id,
+        "category_name": category_name,
+        "confidence": 0.95,
+        "auto_assigned": True,
+        "suggested": False,
+        "model_version": "1.0",
+    }
+
+
+def _ml_suggest_payload(category_name: str = "Transporte", category_id: int = 1) -> dict:
+    return {
+        "category_id": category_id,
+        "category_name": category_name,
+        "confidence": 0.65,
+        "auto_assigned": False,
+        "suggested": True,
+        "model_version": "1.0",
+    }
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -233,3 +258,85 @@ async def test_delete_transaction(client: AsyncClient):
         f"/api/v1/transactions/{tx['id']}", headers={"Authorization": f"Bearer {token}"}
     )
     assert get_resp.status_code == 404
+
+
+# ── Integración ML en POST /transactions ──────────────────────────────────────
+
+
+async def test_create_transaction_ml_fields_present_in_response(client: AsyncClient):
+    """La respuesta de POST /transactions incluye los campos ML (None cuando ML no disponible)."""
+    token = await _register_and_token(client, "ml_fields@example.com")
+    account = await _create_account(client, token)
+    resp = await _create_tx(client, token, account["id"])
+    assert resp.status_code == 201
+    data = resp.json()
+    assert "ml_suggested_category_id" in data
+    assert "ml_confidence" in data
+
+
+async def test_create_transaction_ml_unavailable_does_not_fail(client: AsyncClient):
+    """Cuando el ML service no está disponible, la transacción se crea igualmente sin categoría."""
+    token = await _register_and_token(client, "ml_unavail@example.com")
+    account = await _create_account(client, token)
+    resp = await _create_tx(client, token, account["id"], description="MERCADONA SA COMPRA")
+    assert resp.status_code == 201
+    data = resp.json()
+    # ML no disponible en tests → sin categoría ni sugerencia
+    assert data["ml_suggested_category_id"] is None
+    assert data["ml_confidence"] is None
+
+
+@respx.mock
+async def test_create_transaction_ml_auto_assigns_category(client: AsyncClient):
+    """Cuando ML devuelve auto_assigned=True, la transacción queda con category_id asignado."""
+    respx.post(f"{ML_BASE}/predict").mock(
+        return_value=Response(200, json=_ml_auto_assign_payload("Alimentación", 0))
+    )
+    token = await _register_and_token(client, "ml_auto@example.com")
+    account = await _create_account(client, token)
+    resp = await _create_tx(client, token, account["id"], description="MERCADONA SA COMPRA")
+    assert resp.status_code == 201
+    data = resp.json()
+    # Con auto_assigned=True la categoría queda asignada
+    assert data["category_id"] is not None
+    # No hay sugerencia pendiente (ya asignada)
+    assert data["ml_suggested_category_id"] is None
+
+
+@respx.mock
+async def test_create_transaction_ml_suggests_category(client: AsyncClient):
+    """Cuando ML devuelve suggested=True, ml_suggested_category_id se puebla en la respuesta."""
+    respx.post(f"{ML_BASE}/predict").mock(
+        return_value=Response(200, json=_ml_suggest_payload("Transporte", 1))
+    )
+    token = await _register_and_token(client, "ml_suggest@example.com")
+    account = await _create_account(client, token)
+    resp = await _create_tx(client, token, account["id"], description="REPSOL GASOLINERA")
+    assert resp.status_code == 201
+    data = resp.json()
+    # Con suggested=True: no asigna categoría pero devuelve sugerencia
+    assert data["category_id"] is None
+    assert data["ml_suggested_category_id"] is not None
+    assert data["ml_confidence"] == 0.65
+
+
+@respx.mock
+async def test_create_transaction_with_explicit_category_skips_ml(client: AsyncClient):
+    """Si el usuario ya indica category_id, no se llama al ML service."""
+    # El mock NO debe ser invocado
+    mock_route = respx.post(f"{ML_BASE}/predict").mock(
+        return_value=Response(200, json=_ml_auto_assign_payload())
+    )
+    token = await _register_and_token(client, "ml_skip@example.com")
+    account = await _create_account(client, token)
+
+    # Obtener una categoría del sistema
+    cats = await client.get(
+        "/api/v1/categories", headers={"Authorization": f"Bearer {token}"}
+    )
+    category_id = cats.json()[0]["id"]
+
+    resp = await _create_tx(client, token, account["id"], category_id=category_id)
+    assert resp.status_code == 201
+    # El mock no debe haberse llamado
+    assert not mock_route.called

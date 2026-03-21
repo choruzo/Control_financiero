@@ -58,6 +58,9 @@ class TransactionResponse(BaseModel):
     notes: str | None
     created_at: datetime
     updated_at: datetime
+    # Campos ML: presentes solo en POST /transactions cuando el modelo sugiere categoría
+    ml_suggested_category_id: uuid.UUID | None = None
+    ml_confidence: float | None = None
 
     model_config = {"from_attributes": True}
 

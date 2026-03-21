@@ -1,6 +1,7 @@
 import uuid
 from decimal import Decimal
 
+import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,7 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
-from app.schemas.transactions import TransactionCreate, TransactionFilters, TransactionUpdate
+from app.schemas.transactions import TransactionCreate, TransactionFilters, TransactionResponse, TransactionUpdate
+
+logger = structlog.get_logger(__name__)
 
 
 async def _verify_account_owner(
@@ -58,6 +61,80 @@ async def create_transaction(
     db.add(transaction)
     await db.flush()
     return transaction
+
+
+async def create_transaction_with_ml(
+    db: AsyncSession, user_id: uuid.UUID, data: TransactionCreate
+) -> TransactionResponse:
+    """
+    Crea una transacción e intenta auto-categorizar via ML cuando no se
+    proporciona category_id.
+
+    - Confianza >= 0.85: auto-asigna la categoría.
+    - Confianza >= 0.5: devuelve sugerencia en ml_suggested_category_id/ml_confidence.
+    - ML no disponible o confianza baja: crea sin categoría, sin campos ML.
+    """
+    transaction = await create_transaction(db, user_id, data)
+
+    ml_suggested_category_id: uuid.UUID | None = None
+    ml_confidence: float | None = None
+
+    if data.category_id is None:
+        try:
+            from app.config import settings
+            from app.services.ml_client import MLClient
+
+            ml_client = MLClient(base_url=settings.ml_service_url)
+            prediction = await ml_client.predict(description=data.description)
+
+            if prediction.ml_available and prediction.category_name:
+                cat_result = await db.execute(
+                    select(Category).where(
+                        Category.name == prediction.category_name,
+                        Category.is_system.is_(True),
+                    )
+                )
+                category = cat_result.scalar_one_or_none()
+
+                if category:
+                    if prediction.auto_assigned:
+                        transaction.category_id = category.id
+                        await db.flush()
+                        logger.info(
+                            "ml_auto_assigned",
+                            transaction_id=str(transaction.id),
+                            category=prediction.category_name,
+                            confidence=prediction.confidence,
+                        )
+                    elif prediction.suggested:
+                        ml_suggested_category_id = category.id
+                        ml_confidence = prediction.confidence
+                        logger.info(
+                            "ml_suggested",
+                            transaction_id=str(transaction.id),
+                            category=prediction.category_name,
+                            confidence=prediction.confidence,
+                        )
+        except Exception as exc:
+            logger.warning("ml_categorization_failed", error=str(exc))
+
+    return TransactionResponse(
+        id=transaction.id,
+        account_id=transaction.account_id,
+        user_id=transaction.user_id,
+        category_id=transaction.category_id,
+        amount=transaction.amount,
+        description=transaction.description,
+        transaction_type=transaction.transaction_type,
+        date=transaction.date,
+        is_recurring=transaction.is_recurring,
+        recurrence_rule=transaction.recurrence_rule,
+        notes=transaction.notes,
+        created_at=transaction.created_at,
+        updated_at=transaction.updated_at,
+        ml_suggested_category_id=ml_suggested_category_id,
+        ml_confidence=ml_confidence,
+    )
 
 
 async def get_transactions(
