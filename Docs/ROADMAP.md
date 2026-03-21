@@ -106,10 +106,10 @@ updated: 2026-03-21
 **Objetivo:** Servicio de IA para categorización automática de transacciones.
 
 ### 3.1 Infraestructura ML
-- [ ] Crear microservicio ml-service con FastAPI
-- [ ] Dockerfile con soporte CUDA (nvidia/cuda base image)
-- [ ] Configurar acceso GPU en docker-compose (nvidia runtime)
-- [ ] Comunicación backend ↔ ml-service via HTTP interno
+- [x] Crear microservicio ml-service con FastAPI
+- [x] Dockerfile con soporte CUDA (nvidia/cuda base image)
+- [x] Configurar acceso GPU en docker-compose (nvidia runtime)
+- [x] Comunicación backend ↔ ml-service via HTTP interno
 
 ### 3.2 Categorización
 - [ ] Descargar y preparar DistilBERT multilingüe
