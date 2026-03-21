@@ -150,7 +150,17 @@ Con la **Fase 2.3** se han añadido:
 - `api/v1/analytics.py` — router con 5 endpoints GET bajo `/analytics` (overview, cashflow, expenses-by-category, savings-rate, trends)
 - `tests/test_analytics.py` — 21 tests de integración
 
-Los módulos `tasks/` y `utils/` financieros (TIR, VAN, amortización, Monte Carlo) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
+Con la **Fase 2.4** se han añadido:
+
+- `utils/mortgage.py` — Motor de cálculo hipotecario puro (sin BD): `monthly_payment` (PMT sistema francés), `amortization_schedule` (fijo/variable/mixto con revisión anual o semestral), `effective_annual_rate` (TAE via Newton-Raphson), `closing_costs` (notaría, registro, ITP/AJD, gestoría, tasación)
+- `schemas/mortgage.py` — Schemas Pydantic: `MortgageSimulateRequest` (con `@model_validator` para validar campos por tipo), `MortgageSimulationResult`, `AmortizationRowSchema`, `ClosingCostsSchema`, `MortgageCompareRequest/Response`, `ScenarioParams`, `AffordabilityResponse`, `MaxLoanOption`, `MortgageSaveRequest`, `MortgageSimulationResponse`
+- `services/mortgage.py` — Lógica de negocio: `simulate_mortgage` (stateless), `compare_scenarios` (compara hasta 5 escenarios), `get_affordability` (regla 35% sobre ingresos reales de analytics), CRUD de simulaciones guardadas
+- `api/v1/mortgage.py` — Router con 7 endpoints bajo `/mortgage`: `POST /simulate`, `POST /compare`, `GET /affordability`, `POST /simulations`, `GET /simulations`, `GET /simulations/{id}`, `DELETE /simulations/{id}`
+- `models/mortgage.py` — Modelo SQLAlchemy `MortgageSimulation` con parámetros de entrada y resultados pre-calculados
+- `alembic/versions/0005_add_mortgage_simulations.py` — Migración tabla `mortgage_simulations`
+- `tests/test_mortgage.py` — 26 tests de integración
+
+Los módulos `tasks/` y `utils/` financieros (TIR, VAN, Monte Carlo) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
 
 ## Validación con tests
 

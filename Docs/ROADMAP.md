@@ -82,15 +82,15 @@ updated: 2026-03-21
 - [x] Tasa de ahorro mensual y media móvil
 - [x] Tendencias (comparación mes actual vs. anterior, vs. media)
 
-### 2.4 Simulador Hipotecario
-- [ ] Motor de cálculo: sistema francés de amortización
-- [ ] Hipoteca tipo fijo: cuota constante
-- [ ] Hipoteca tipo variable: Euríbor + diferencial, revisión anual/semestral
-- [ ] Hipoteca mixta: periodo fijo inicial + variable
-- [ ] Tabla de amortización completa
-- [ ] Cálculo de máxima hipoteca permitida (regla 30-35% ingresos netos)
-- [ ] Gastos asociados: notaría, registro, ITP/AJD, gestoría, tasación
-- [ ] Comparador de escenarios (fijo vs variable vs mixto)
+### 2.4 Simulador Hipotecario ✅
+- [x] Motor de cálculo: sistema francés de amortización
+- [x] Hipoteca tipo fijo: cuota constante
+- [x] Hipoteca tipo variable: Euríbor + diferencial, revisión anual/semestral
+- [x] Hipoteca mixta: periodo fijo inicial + variable
+- [x] Tabla de amortización completa
+- [x] Cálculo de máxima hipoteca permitida (regla 30-35% ingresos netos)
+- [x] Gastos asociados: notaría, registro, ITP/AJD, gestoría, tasación
+- [x] Comparador de escenarios (fijo vs variable vs mixto)
 
 ### 2.5 Fiscalidad
 - [ ] Modelo TaxConfig con tramos IRPF por año

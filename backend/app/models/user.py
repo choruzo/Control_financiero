@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from app.models.budget import Budget
     from app.models.category import Category
     from app.models.investment import Investment
+    from app.models.mortgage import MortgageSimulation
     from app.models.refresh_token import RefreshToken
     from app.models.transaction import Transaction
 
@@ -64,6 +65,11 @@ class User(Base):
     )
     investments: Mapped[list[Investment]] = relationship(
         "Investment",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    mortgage_simulations: Mapped[list[MortgageSimulation]] = relationship(
+        "MortgageSimulation",
         back_populates="user",
         cascade="all, delete-orphan",
     )
