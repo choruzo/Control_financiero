@@ -115,7 +115,16 @@ Request → CORS Middleware → api/v1/{dominio}
 - `alembic/versions/0002_add_accounts_categories_transactions.py` — migración
 - Seeder de categorías por defecto ejecutado en lifespan de FastAPI
 
-Los módulos `tasks/` y `utils/` (salvo logging) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
+Con la **Fase 1.4** se han añadido:
+
+- `utils/csv_parser.py` — Parser para formato CSV de OpenBank (separador `;`, fecha DD/MM/YYYY, coma decimal, encoding UTF-8/latin-1)
+- `schemas/imports.py` — Schemas Pydantic: `ImportResult`, `ImportRowResult`, `ImportRowStatus`
+- `services/imports.py` — Lógica de importación con deduplicación y modo dry_run
+- `api/v1/transactions.py` — Endpoint `POST /transactions/import/csv` (query params: `account_id`, `dry_run`)
+- `tests/fixtures/openbank_sample.csv` — CSV de muestra para tests
+- `tests/test_imports.py` — 11 tests de importación
+
+Los módulos `tasks/` y `utils/` financieros (TIR, VAN, amortización, Monte Carlo) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
 
 ## Validación con tests
 

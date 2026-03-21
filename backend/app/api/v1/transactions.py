@@ -2,12 +2,13 @@ import uuid
 from datetime import date as Date
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_current_user
 from app.database import get_db
 from app.models.user import User
+from app.schemas.imports import ImportResult
 from app.schemas.transactions import (
     PaginatedTransactions,
     TransactionCreate,
@@ -16,9 +17,41 @@ from app.schemas.transactions import (
     TransactionType,
     TransactionUpdate,
 )
+from app.services import imports as imports_service
 from app.services import transactions as transactions_service
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
+
+MAX_CSV_SIZE = 5 * 1024 * 1024  # 5 MB
+
+
+@router.post("/import/csv", response_model=ImportResult)
+async def import_csv(
+    account_id: uuid.UUID,
+    file: UploadFile = File(...),
+    dry_run: bool = False,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ImportResult:
+    """Importa transacciones desde un CSV en formato OpenBank.
+
+    - **account_id**: ID de la cuenta destino (debe pertenecer al usuario).
+    - **dry_run**: Si True, previsualiza el resultado sin insertar en base de datos.
+    """
+    content = await file.read(MAX_CSV_SIZE + 1)
+    if len(content) > MAX_CSV_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El archivo supera el límite de 5 MB",
+        )
+    if not content:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El archivo está vacío",
+        )
+    return await imports_service.import_transactions_from_csv(
+        db, current_user.id, account_id, content, dry_run
+    )
 
 
 @router.post("", response_model=TransactionResponse, status_code=201)

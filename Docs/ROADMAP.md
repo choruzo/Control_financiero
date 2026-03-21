@@ -50,11 +50,11 @@ updated: 2026-03-21
 - [x] Filtros y paginación en transacciones
 - [x] Tests unitarios e integración
 
-### 1.4 Importación de Datos
-- [ ] Endpoint de importación CSV
-- [ ] Parser para formato OpenBank (investigar formato de exportación)
-- [ ] Validación y deduplicación de transacciones
-- [ ] Tests de importación
+### 1.4 Importación de Datos ✅
+- [x] Endpoint de importación CSV
+- [x] Parser para formato OpenBank (investigar formato de exportación)
+- [x] Validación y deduplicación de transacciones
+- [x] Tests de importación
 
 **Entregable:** API REST funcional con auth, CRUD de cuentas/transacciones/categorías, importación CSV.
 
