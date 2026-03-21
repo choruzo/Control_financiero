@@ -32,7 +32,7 @@ updated: 2026-03-21
 - [x] Crear proyecto FastAPI con estructura de carpetas
 - [x] Configurar SQLAlchemy 2.0 async + Alembic
 - [x] Variables de entorno con pydantic-settings
-- [ ] Logging estructurado
+- [x] Logging estructurado
 
 ### 1.2 Autenticación
 - [ ] Modelo User
