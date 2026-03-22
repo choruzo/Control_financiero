@@ -15,6 +15,10 @@ dependencies = [
     "transformers>=4.46.0",
     "httpx>=0.28.0",
     "redis>=5.2.0",
+    "scikit-learn>=1.4.0",
+    "numpy>=1.26.0",
+    # Prophet es opcional: si no está instalado se usa modo degradado
+    "prophet>=1.1",
 ]
 
 [project.optional-dependencies]

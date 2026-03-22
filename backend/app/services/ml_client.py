@@ -2,7 +2,14 @@ import structlog
 import httpx
 
 from app.config import settings
-from app.schemas.ml import MLFeedbackRequest, MLFeedbackResponse, MLPredictRequest, MLPredictResponse
+from app.schemas.ml import (
+    MLFeedbackRequest,
+    MLFeedbackResponse,
+    MLForecastRequest,
+    MLForecastResponse,
+    MLPredictRequest,
+    MLPredictResponse,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -103,6 +110,100 @@ class MLClient:
         except (httpx.TimeoutException, httpx.RequestError, httpx.HTTPStatusError) as exc:
             logger.warning("ml_client_retrain_sync_error", error=str(exc), url=self._base_url)
             return {"status": "error", "ml_available": False, "reason": str(exc)}
+
+    async def forecast(
+        self,
+        historical_data: list[dict],
+        months_ahead: int = 6,
+    ) -> MLForecastResponse:
+        """
+        Solicita la predicción de cashflow al ml-service.
+
+        Si el ml-service no está disponible devuelve una respuesta degradada
+        con ceros y ml_available=False.
+        """
+        payload = MLForecastRequest(
+            historical_data=historical_data,
+            months_ahead=months_ahead,
+        )
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(15.0, connect=2.0)) as client:
+                response = await client.post(
+                    f"{self._base_url}/forecast",
+                    json=payload.model_dump(),
+                )
+                response.raise_for_status()
+                data = response.json()
+                return MLForecastResponse(**data, ml_available=True)
+        except httpx.TimeoutException:
+            logger.warning("ml_client_forecast_timeout", url=self._base_url)
+            return self._unavailable_forecast_response(historical_data, months_ahead)
+        except httpx.HTTPStatusError as exc:
+            logger.warning(
+                "ml_client_forecast_http_error",
+                status=exc.response.status_code,
+                url=self._base_url,
+            )
+            return self._unavailable_forecast_response(historical_data, months_ahead)
+        except httpx.RequestError as exc:
+            logger.warning("ml_client_forecast_connection_error", error=str(exc))
+            return self._unavailable_forecast_response(historical_data, months_ahead)
+
+    def trigger_forecast_retrain_sync(self) -> dict:
+        """
+        Dispara el reentrenamiento del modelo de forecasting (llamada síncrona).
+
+        Diseñado para uso desde Celery tasks.
+        Siempre devuelve un dict con 'status' y 'ml_available'.
+        """
+        try:
+            with httpx.Client(timeout=httpx.Timeout(30.0, connect=5.0)) as client:
+                response = client.post(f"{self._base_url}/forecast/retrain")
+                response.raise_for_status()
+                return {**response.json(), "ml_available": True}
+        except (httpx.TimeoutException, httpx.RequestError, httpx.HTTPStatusError) as exc:
+            logger.warning(
+                "ml_client_forecast_retrain_sync_error", error=str(exc), url=self._base_url
+            )
+            return {"status": "error", "ml_available": False, "reason": str(exc)}
+
+    @staticmethod
+    def _unavailable_forecast_response(
+        historical_data: list[dict], months_ahead: int
+    ) -> MLForecastResponse:
+        """Respuesta degradada cuando el ml-service no está disponible."""
+        from app.schemas.ml import MLForecastPoint
+
+        # Calcular los meses futuros a partir del último dato histórico
+        if historical_data:
+            last = historical_data[-1]
+            y, m = int(last["year"]), int(last["month"])
+        else:
+            from datetime import UTC, datetime
+            today = datetime.now(UTC).date()
+            y, m = today.year, today.month
+
+        predictions = []
+        for _ in range(months_ahead):
+            m += 1
+            if m > 12:
+                m = 1
+                y += 1
+            predictions.append(
+                MLForecastPoint(
+                    year=y, month=m,
+                    income_p10=0.0, income_p50=0.0, income_p90=0.0,
+                    expenses_p10=0.0, expenses_p50=0.0, expenses_p90=0.0,
+                    net_p10=0.0, net_p50=0.0, net_p90=0.0,
+                )
+            )
+        return MLForecastResponse(
+            predictions=predictions,
+            model_used="unavailable",
+            model_version="unavailable",
+            data_months_provided=len(historical_data),
+            ml_available=False,
+        )
 
     async def health_check(self) -> bool:
         """Retorna True si el ml-service responde correctamente."""

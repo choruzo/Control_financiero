@@ -31,10 +31,15 @@ class Settings(BaseSettings):
     celery_broker_url: str = "redis://redis:6379/1"
     celery_result_backend: str = "redis://redis:6379/2"
 
-    # ML reentrenamiento automático
+    # ML reentrenamiento automático (categorización)
     ml_retrain_min_feedback: int = 10
     ml_retrain_schedule_hour: int = 3
     ml_retrain_schedule_day_of_week: str = "0"
+
+    # ML forecasting
+    ml_forecast_min_months: int = 6         # mínimo meses históricos recomendados
+    ml_forecast_max_ahead: int = 12         # máximo meses a predecir
+    ml_forecast_retrain_schedule_hour: int = 4  # hora del reentrenamiento mensual (4AM)
 
     @property
     def database_url(self) -> str:

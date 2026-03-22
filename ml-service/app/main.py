@@ -6,8 +6,9 @@ import structlog
 from fastapi import FastAPI, Request
 
 from app.config import settings
+from app.ml.forecaster import Forecaster
 from app.ml.model_manager import ModelManager
-from app.routers import feedback, health, model, predict, retrain
+from app.routers import feedback, forecast, health, model, predict, retrain
 
 structlog.configure(
     processors=[
@@ -27,12 +28,20 @@ async def lifespan(app: FastAPI):
     await manager.load()
     app.state.model_manager = manager
     app.state.retrain_in_progress = False
+
+    forecaster = Forecaster(model_path=settings.forecast_model_path, device=settings.device)
+    await forecaster.load()
+    app.state.forecaster = forecaster
+    app.state.forecast_retrain_in_progress = False
+
     logger.info(
         "startup",
         app=settings.app_name,
         env=settings.app_env,
         model_loaded=manager.loaded,
         model_version=manager.metadata.get("version", "none"),
+        forecaster_loaded=forecaster.loaded,
+        forecaster_version=forecaster.metadata.get("version", "none"),
     )
     yield
     logger.info("shutdown", app=settings.app_name)
@@ -72,3 +81,4 @@ app.include_router(predict.router)
 app.include_router(feedback.router)
 app.include_router(model.router)
 app.include_router(retrain.router)
+app.include_router(forecast.router)

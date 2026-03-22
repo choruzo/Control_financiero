@@ -16,7 +16,9 @@ from app.schemas.analytics import (
     SavingsRateMonthResponse,
     TrendsResponse,
 )
+from app.schemas.forecasting import CashflowForecastResponse
 from app.services import analytics as analytics_service
+from app.services import forecasting as forecasting_service
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -85,4 +87,25 @@ async def get_trends(
     y, m = _current_year_month()
     return await analytics_service.get_trends(
         db, current_user.id, year or y, month or m
+    )
+
+
+@router.get("/forecast", response_model=CashflowForecastResponse)
+async def get_cashflow_forecast(
+    months: Annotated[int, Query(ge=1, le=12)] = 6,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> CashflowForecastResponse:
+    """
+    Predicción de flujo de caja para los próximos N meses (máx. 12).
+
+    Usa LSTM bidireccional cuando está entrenado, Prophet como fallback
+    estadístico, o devuelve ceros en modo degradado si el ml-service
+    no está disponible.
+
+    Los intervalos de confianza (P10/P50/P90) representan escenarios
+    pesimista, esperado y optimista respectivamente.
+    """
+    return await forecasting_service.get_cashflow_forecast(
+        db, current_user.id, months_ahead=months
     )

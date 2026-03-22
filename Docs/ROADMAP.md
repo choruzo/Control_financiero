@@ -134,14 +134,14 @@ updated: 2026-03-21
 ## FASE 4: ML Service - Predicciones y Escenarios
 **Objetivo:** Modelos predictivos y motor de escenarios "what-if".
 
-### 4.1 Predicción de Flujo de Caja
-- [ ] Preparar dataset temporal (series mensuales de ingresos/gastos por categoría)
-- [ ] Implementar modelo LSTM bidireccional con PyTorch
-- [ ] Implementar modelo Prophet como baseline
-- [ ] Comparar modelos y seleccionar el mejor (o ensemble)
-- [ ] API: predicción de ingresos/gastos para los próximos N meses
-- [ ] Intervalos de confianza en las predicciones
-- [ ] Reentrenamiento automático mensual
+### 4.1 Predicción de Flujo de Caja ✅
+- [x] Preparar dataset temporal (series mensuales sintéticas, `ml-service/data/generate_timeseries.py`)
+- [x] Implementar modelo LSTM bidireccional con PyTorch (`ml-service/app/ml/lstm_model.py`)
+- [x] Implementar modelo Prophet como baseline (fallback en `ml-service/app/ml/forecaster.py`)
+- [x] Selección automática: LSTM si disponible, Prophet si no, degraded como último recurso
+- [x] API: `POST /forecast` (ml-service) + `GET /analytics/forecast` (backend)
+- [x] Intervalos de confianza P10/P50/P90 via MC Dropout (LSTM) o Prophet nativo
+- [x] Reentrenamiento automático mensual via Celery Beat (`app.tasks.forecasting`)
 
 ### 4.2 Motor de Escenarios
 - [ ] Motor de reglas parametrizable:

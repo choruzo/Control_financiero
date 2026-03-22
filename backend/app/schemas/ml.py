@@ -28,3 +28,38 @@ class MLFeedbackResponse(BaseModel):
     message: str
     feedback_id: str | None = None
     ml_available: bool = True
+
+
+# ---------------------------------------------------------------------------
+# Forecast (Fase 4.1)
+# ---------------------------------------------------------------------------
+
+
+class MLForecastPoint(BaseModel):
+    year: int
+    month: int
+    income_p10: float
+    income_p50: float
+    income_p90: float
+    expenses_p10: float
+    expenses_p50: float
+    expenses_p90: float
+    net_p10: float
+    net_p50: float
+    net_p90: float
+
+
+class MLForecastRequest(BaseModel):
+    historical_data: list[dict] = Field(
+        ..., description="Lista de {year, month, income, expenses} en orden cronológico"
+    )
+    months_ahead: int = Field(default=6, ge=1, le=12)
+    include_intervals: bool = True
+
+
+class MLForecastResponse(BaseModel):
+    predictions: list[MLForecastPoint]
+    model_used: str
+    model_version: str
+    data_months_provided: int
+    ml_available: bool = True

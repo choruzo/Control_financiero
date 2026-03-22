@@ -17,7 +17,7 @@ celery_app = Celery(
     "fincontrol",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
-    include=["app.tasks.ml_retraining"],
+    include=["app.tasks.ml_retraining", "app.tasks.forecasting"],
 )
 
 celery_app.conf.timezone = "Europe/Madrid"
@@ -29,6 +29,13 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(
             hour=settings.ml_retrain_schedule_hour,
             day_of_week=settings.ml_retrain_schedule_day_of_week,
+        ),
+    },
+    "retrain-forecast-monthly": {
+        "task": "app.tasks.forecasting.trigger_forecast_retrain",
+        "schedule": crontab(
+            hour=settings.ml_forecast_retrain_schedule_hour,
+            day_of_month="1",
         ),
     },
 }

@@ -302,13 +302,26 @@ class TransactionCategorizer:
         ...
 ```
 
-### 5.2 Predicción de Flujo de Caja (LSTM)
+### 5.2 Predicción de Flujo de Caja (LSTM) ✅ Fase 4.1
 
-**Arquitectura:** LSTM bidireccional con attention
-- **Input features:** Ingreso/gasto mensual, categoría, mes del año, indicadores macro (Euríbor)
-- **Output:** Predicción de ingreso/gasto para los próximos N meses
-- **Baseline:** Facebook Prophet (para comparar y como fallback)
-- **Reentrenamiento:** Automático mensual via Celery Beat
+**Arquitectura:** `CashflowLSTM` — LSTM bidireccional (2 capas, hidden=64, dropout=0.2)
+- **Input:** Secuencia de 12 meses de `[income, expenses]` normalizados con `StandardScaler`
+- **Output:** Predicción del mes siguiente; rolling prediction para N meses hacia adelante
+- **Intervalos de confianza:** MC Dropout (50 muestras) → P10/P50/P90
+- **Fallback Prophet:** Si LSTM no está entrenado, usa Facebook Prophet como baseline estadístico
+- **Modo degradado:** Si tampoco hay Prophet, devuelve ceros (sin interrumpir el flujo)
+- **Reentrenamiento:** Automático mensual (1 de cada mes a las 4AM via Celery Beat)
+- **Training data:** Series históricas reales almacenadas en Redis desde peticiones de forecast + dataset sintético
+
+**Módulos implementados:**
+- `ml-service/app/ml/lstm_model.py` — Arquitectura PyTorch (`CashflowLSTM`)
+- `ml-service/app/ml/forecaster.py` — Singleton (patrón análogo a `ModelManager`)
+- `ml-service/app/routers/forecast.py` — `POST /forecast`, `POST /forecast/retrain`, `GET /forecast/status`
+- `ml-service/data/generate_timeseries.py` — Generador de dataset sintético (200 series × 36 meses)
+- `ml-service/scripts/train_forecaster.py` — CLI de entrenamiento inicial
+
+**Endpoints Backend:**
+- `GET /analytics/forecast?months=6` — Predicción de cashflow con intervalos de confianza
 
 ### 5.3 Análisis de Escenarios
 

@@ -231,6 +231,27 @@ Con la **Fase 3.3** se han añadido:
 - `ml-service/tests/test_retrain.py` — 12 tests del endpoint `/retrain` y callbacks
 - `backend/tests/test_celery_tasks.py` — 7 tests de `trigger_retrain_sync` y la Celery task
 
+Con la **Fase 4.1** se han añadido:
+
+- `ml-service/app/ml/lstm_model.py` — Arquitectura `CashflowLSTM`: LSTM bidireccional (2 capas, hidden=64, MC Dropout para intervalos de confianza)
+- `ml-service/app/ml/forecaster.py` — Singleton `Forecaster` (patrón análogo a `ModelManager`): carga LSTM desde disco, Prophet como fallback, modo degradado con ceros
+- `ml-service/app/schemas/forecast.py` — Schemas: `MonthlyPoint`, `ForecastPoint`, `ForecastRequest`, `ForecastResponse`, `ForecastRetrainResponse`, `ForecastStatusResponse`
+- `ml-service/app/routers/forecast.py` — Router con 3 endpoints: `POST /forecast` (inferencia), `POST /forecast/retrain` (reentrenamiento async en ThreadPoolExecutor), `GET /forecast/status`
+- `ml-service/data/generate_timeseries.py` — Generador de dataset sintético (200 series × 36 meses, 5 perfiles de usuario españoles)
+- `ml-service/scripts/train_forecaster.py` — CLI de entrenamiento inicial LSTM
+- `ml-service/app/config.py` — Nuevos campos: `forecast_model_path`, `forecast_min_months`, `forecast_min_series_for_retrain`, `forecast_retrain_epochs/batch_size`
+- `ml-service/pyproject.toml` — Nuevas dependencias: `scikit-learn>=1.4`, `prophet>=1.1`
+- `ml-service/tests/test_forecast.py` — 15 tests (degraded mode, validación, schema, unitarios de Forecaster)
+- `backend/app/schemas/forecasting.py` — `ForecastMonthResponse`, `CashflowForecastResponse`
+- `backend/app/schemas/ml.py` — Añadidos `MLForecastPoint`, `MLForecastRequest`, `MLForecastResponse`
+- `backend/app/services/forecasting.py` — `get_cashflow_forecast()`: obtiene historial via analytics + llama ml-service + degradación graceful
+- `backend/app/services/ml_client.py` — Añadidos `forecast()` (async) y `trigger_forecast_retrain_sync()` (sync para Celery)
+- `backend/app/api/v1/analytics.py` — Endpoint `GET /analytics/forecast?months=6`
+- `backend/app/tasks/forecasting.py` — Celery task `trigger_forecast_retrain`
+- `backend/app/tasks/celery_app.py` — Beat schedule mensual (1 de cada mes 4AM)
+- `backend/app/config.py` — Nuevos campos: `ml_forecast_min_months`, `ml_forecast_max_ahead`, `ml_forecast_retrain_schedule_hour`
+- `backend/tests/test_forecasting.py` — 11 tests de integración
+
 Los módulos `utils/` financieros (TIR, VAN, Monte Carlo) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
 
 ## Validación con tests
