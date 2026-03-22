@@ -143,15 +143,15 @@ updated: 2026-03-21
 - [x] Intervalos de confianza P10/P50/P90 via MC Dropout (LSTM) o Prophet nativo
 - [x] Reentrenamiento automático mensual via Celery Beat (`app.tasks.forecasting`)
 
-### 4.2 Motor de Escenarios
-- [ ] Motor de reglas parametrizable:
+### 4.2 Motor de Escenarios ✅
+- [x] Motor de reglas parametrizable:
   - Variación de sueldo (±X%)
   - Variación de Euríbor
   - Añadir/eliminar gasto recurrente
   - Cambio de tipo impositivo
-- [ ] Simulación Monte Carlo para escenarios con incertidumbre
-- [ ] Cálculo del impacto fiscal (IRPF) en cada escenario
-- [ ] API: POST con parámetros base + modificaciones → resultado con distribución
+- [x] Simulación Monte Carlo para escenarios con incertidumbre
+- [x] Cálculo del impacto fiscal (IRPF) en cada escenario
+- [x] API: POST /scenarios/analyze con parámetros base + modificaciones → resultado con distribución P10/P50/P90
 
 ### 4.3 Predicción de Máxima Hipoteca con IA
 - [ ] Combinar predicción de ingresos futuros + escenarios de tipos

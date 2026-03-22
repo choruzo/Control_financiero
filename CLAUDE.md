@@ -252,7 +252,17 @@ Con la **Fase 4.1** se han añadido:
 - `backend/app/config.py` — Nuevos campos: `ml_forecast_min_months`, `ml_forecast_max_ahead`, `ml_forecast_retrain_schedule_hour`
 - `backend/tests/test_forecasting.py` — 11 tests de integración
 
-Los módulos `utils/` financieros (TIR, VAN, Monte Carlo) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
+Con la **Fase 4.2** se han añadido:
+
+- `backend/app/utils/monte_carlo.py` — Funciones puras NumPy: `simulate_net_distribution` (MC con σ estimado del intervalo P10/P90), `apply_scenario_modifications` (variaciones deterministas)
+- `backend/app/schemas/scenarios.py` — Schemas Pydantic: `RecurringExpenseModification`, `ScenarioRequest` (salary_variation_pct, euribor_variation_pct, recurring_expense_modifications, gross_annual, tax_year, monte_carlo_simulations), `ScenarioMonthResult`, `ScenarioSummary`, `ScenarioResponse`
+- `backend/app/services/scenarios.py` — Motor principal stateless: histórico → delta gastos → impacto Euríbor (busca MortgageSimulation variable/mixta) → forecast ML → IRPF puro → Monte Carlo por mes → resumen. Función `_irpf_monthly()` replica lógica de `services/tax.py` sin BD
+- `backend/app/api/v1/scenarios.py` — Router `POST /scenarios/analyze` protegido con auth
+- `backend/app/api/v1/__init__.py` — Registrado `scenarios.router`
+- `backend/app/config.py` — Nuevo campo `scenario_monte_carlo_simulations=1000`
+- `backend/tests/test_scenarios.py` — 19 tests (auth, variaciones de sueldo, gastos recurrentes, impacto fiscal, Euríbor sin hipoteca, degradación ML, validación, P10≤P50≤P90, funciones puras)
+
+Los módulos `utils/` financieros (TIR, VAN) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
 
 ## Validación con tests
 

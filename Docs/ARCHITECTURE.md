@@ -268,10 +268,11 @@ ML (infraestructura, modelo pendiente Fase 3.2): ✅
   POST   /api/v1/ml/feedback                 ←── feedback usuario (almacenamiento pendiente Fase 3.3)
   GET    /api/v1/ml/status                   ←── estado del modelo
 
-ML (endpoints pendientes Fase 4): 🔜
-  GET    /api/v1/ml/predictions/cashflow     ?months_ahead=12
-  POST   /api/v1/ml/scenarios/simulate       ←── "¿qué pasa si...?"
-  POST   /api/v1/ml/models/retrain           ←── forzar reentrenamiento
+Analytics — Forecast ML (Fase 4.1): ✅
+  GET    /api/v1/analytics/forecast          ?months=1..12 ←── predicción cashflow P10/P50/P90
+
+Escenarios "what-if" (Fase 4.2): ✅
+  POST   /api/v1/scenarios/analyze           ←── motor escenarios Monte Carlo
 ```
 
 ## 5. Estrategia ML/IA
@@ -323,13 +324,20 @@ class TransactionCategorizer:
 **Endpoints Backend:**
 - `GET /analytics/forecast?months=6` — Predicción de cashflow con intervalos de confianza
 
-### 5.3 Análisis de Escenarios
+### 5.3 Análisis de Escenarios (Fase 4.2 — implementado)
 
-Motor basado en reglas + Monte Carlo:
-- Modificar parámetros (sueldo ±X%, Euríbor, gastos)
-- Aplicar tramos IRPF actualizados
-- Simular N escenarios con variabilidad
-- Devolver distribución de resultados (percentiles P10, P50, P90)
+Motor stateless basado en reglas + Monte Carlo:
+- `POST /api/v1/scenarios/analyze` — acepta `ScenarioRequest` con parámetros base + modificaciones
+- **Modificaciones soportadas:** variación de sueldo (±%), Euríbor (puntos %), añadir/eliminar gastos recurrentes, impacto fiscal IRPF
+- **Pipeline:** histórico analytics → forecast ML (1 llamada HTTP) → Monte Carlo N=1000 por mes → resumen agregado
+- **Distribución de resultados:** percentiles P10/P50/P90 para el neto mensual y acumulado
+- **σ estimado** del intervalo P10-P90 del forecast LSTM: `σ = (P90 - P10) / 2.56`
+- **Impacto Euríbor:** busca `MortgageSimulation` variable/mixta más reciente; calcula delta de cuota mensual
+- **Impacto fiscal:** función pura `_irpf_monthly()` — replica lógica IRPF de `services/tax.py` sin BD; acepta `gross_annual` directamente en el request
+- **Archivos clave:**
+  - `backend/app/utils/monte_carlo.py` — funciones puras NumPy
+  - `backend/app/services/scenarios.py` — motor de orquestación
+  - `backend/app/schemas/scenarios.py` — schemas request/response
 
 ### 5.4 Microservicio ML (Fase 3.1 — infraestructura operativa)
 

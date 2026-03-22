@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     ml_forecast_max_ahead: int = 12         # máximo meses a predecir
     ml_forecast_retrain_schedule_hour: int = 4  # hora del reentrenamiento mensual (4AM)
 
+    # Escenarios Monte Carlo
+    scenario_monte_carlo_simulations: int = 1000
+
     @property
     def database_url(self) -> str:
         return (

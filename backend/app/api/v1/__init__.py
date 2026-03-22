@@ -9,6 +9,7 @@ from app.api.v1 import (
     investments,
     ml,
     mortgage,
+    scenarios,
     tax,
     transactions,
 )
@@ -24,3 +25,4 @@ router.include_router(analytics.router)
 router.include_router(mortgage.router)
 router.include_router(tax.router)
 router.include_router(ml.router)
+router.include_router(scenarios.router)
