@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     # ML
     model_path: str = "/app/models"
     device: str = "cpu"
-    categorization_threshold: float = 0.85
+    categorization_threshold: float = 0.92
     categorization_suggest_threshold: float = 0.5
 
     # Redis (para almacenar feedback y estado del modelo)

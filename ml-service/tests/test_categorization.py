@@ -78,6 +78,30 @@ class TestPreprocessor:
         result = normalize_banking_text("PARKING 3 HORAS 2024")
         assert "3" in result
 
+    def test_removes_banking_prefix_rec_dom(self):
+        from app.ml.preprocessor import normalize_banking_text
+        result = normalize_banking_text("REC DOM 20260201 IBERDROLA")
+        assert "REC" not in result or "IBERDROLA" in result
+        assert "IBERDROLA" in result
+
+    def test_removes_banking_prefix_trf(self):
+        from app.ml.preprocessor import normalize_banking_text
+        result = normalize_banking_text("TRF 20260115 NOMINA EMPRESA")
+        assert "NOMINA" in result
+        assert "20260115" not in result
+
+    def test_removes_banking_prefix_cobro_tpv(self):
+        from app.ml.preprocessor import normalize_banking_text
+        result = normalize_banking_text("COBRO TPV 987654321 REPSOL")
+        assert "REPSOL" in result
+        assert "987654321" not in result
+
+    def test_removes_compact_dates(self):
+        from app.ml.preprocessor import normalize_banking_text
+        result = normalize_banking_text("DOM RECIBO 20250301 ENDESA")
+        assert "20250301" not in result
+        assert "ENDESA" in result
+
     def test_empty_string(self):
         from app.ml.preprocessor import normalize_banking_text
         assert normalize_banking_text("") == ""
