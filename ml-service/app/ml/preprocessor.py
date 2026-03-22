@@ -9,15 +9,15 @@ def normalize_banking_text(text: str) -> str:
     Normaliza un concepto bancario para reducir ruido antes de la inferencia.
 
     Operaciones aplicadas:
-    - Convertir a minúsculas
     - Normalizar caracteres Unicode (acentos, ñ, etc. se conservan)
     - Eliminar referencias numéricas largas (≥6 dígitos, como IDs de operación)
     - Eliminar fechas en formato DD/MM/YYYY o YYYY-MM-DD
     - Eliminar secuencias de caracteres no alfanuméricos (excepto espacios)
     - Normalizar espacios múltiples
-    """
-    text = text.lower()
 
+    Nota: NO se convierte a minúsculas porque el modelo fue entrenado con texto en
+    mayúsculas (formato estándar de extractos bancarios) y usa distilbert-base-multilingual-cased.
+    """
     # Normalizar Unicode: separar letras de diacríticos combinados pero conservar ñ
     text = unicodedata.normalize("NFC", text)
 

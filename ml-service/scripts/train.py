@@ -112,8 +112,11 @@ def evaluate(model: Any, loader: DataLoader, device: str) -> float:
     return correct / total if total > 0 else 0.0
 
 
-def main(model_path: str, epochs: int, batch_size: int) -> None:
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+def main(model_path: str, epochs: int, batch_size: int, device_override: str | None = None) -> None:
+    if device_override:
+        device = device_override
+    else:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Device: {device}")
     print(f"Cargando dataset desde {DATASET_PATH}...")
 
@@ -203,6 +206,7 @@ if __name__ == "__main__":
     parser.add_argument("--model-path", default="/app/models", help="Directorio de salida del modelo")
     parser.add_argument("--epochs", type=int, default=3, help="Número de epochs de entrenamiento")
     parser.add_argument("--batch-size", type=int, default=16, help="Tamaño del batch")
+    parser.add_argument("--device", default=None, help="Device: cpu o cuda (auto-detecta si no se indica)")
     args = parser.parse_args()
 
-    main(model_path=args.model_path, epochs=args.epochs, batch_size=args.batch_size)
+    main(model_path=args.model_path, epochs=args.epochs, batch_size=args.batch_size, device_override=args.device)

@@ -44,21 +44,22 @@ class TestCategories:
 # ── Preprocesador ────────────────────────────────────────────────────────────
 
 class TestPreprocessor:
-    def test_converts_to_lowercase(self):
+    def test_preserves_case(self):
+        """El modelo fue entrenado con mayúsculas — no se convierte a minúsculas."""
         from app.ml.preprocessor import normalize_banking_text
-        assert normalize_banking_text("MERCADONA SA") == "mercadona sa"
+        assert normalize_banking_text("MERCADONA SA") == "MERCADONA SA"
 
     def test_removes_long_numeric_references(self):
         from app.ml.preprocessor import normalize_banking_text
         result = normalize_banking_text("TRF 123456789 CONCEPTO")
         assert "123456789" not in result
-        assert "concepto" in result
+        assert "CONCEPTO" in result
 
     def test_removes_dates(self):
         from app.ml.preprocessor import normalize_banking_text
         result = normalize_banking_text("PAGO 15/03/2024 MERCADONA")
         assert "15/03/2024" not in result
-        assert "mercadona" in result
+        assert "MERCADONA" in result
 
     def test_collapses_whitespace(self):
         from app.ml.preprocessor import normalize_banking_text
@@ -69,8 +70,7 @@ class TestPreprocessor:
     def test_preserves_spanish_characters(self):
         from app.ml.preprocessor import normalize_banking_text
         result = normalize_banking_text("CAFÉ CON LECHE")
-        # La ñ y caracteres acentuados deben conservarse
-        assert "caf" in result
+        assert "CAF" in result
 
     def test_short_numbers_kept(self):
         """Números cortos (< 6 dígitos) no se eliminan."""
