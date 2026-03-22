@@ -48,7 +48,19 @@
       "Bash(MSYS_NO_PATHCONV=1 docker compose -f docker-compose.dev.yml exec ml-service python scripts/train.py --model-path /app/models --epochs 20 --batch-size 16 2>&1)",
       "Bash(MSYS_NO_PATHCONV=1 docker compose -f docker-compose.dev.yml exec ml-service python /tmp/bias_variance_test.py 2>&1)",
       "Bash(MSYS_NO_PATHCONV=1 docker compose -f docker-compose.dev.yml exec ml-service python /tmp/bias_variance_test.py)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(npm install:*)",
+      "Bash(npm info:*)",
+      "Bash(python3 -c \"import json,sys; v=json.load\\(sys.stdin\\); print\\([x for x in v if x.startswith\\(''''3''''\\)][-5:]\\)\")",
+      "Bash(python3 -c \"import json,sys; v=json.load\\(sys.stdin\\); print\\([x for x in v if x.startswith\\(''''5''''\\)][-5:]\\)\")",
+      "Bash(python3 -c \"import json,sys; v=json.load\\(sys.stdin\\); print\\([x for x in v if x.startswith\\(''''4''''\\)][-5:]\\)\")",
+      "Bash(python3 -c \"import json,sys; v=json.load\\(sys.stdin\\); items=v if isinstance\\(v,list\\) else [v]; last=[x for x in items if x.startswith\\(''''2.1''''\\)][-5:]; print\\(last\\)\")",
+      "Bash(npx svelte-kit:*)",
+      "Bash(npm run:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }

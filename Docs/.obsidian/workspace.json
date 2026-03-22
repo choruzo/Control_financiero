@@ -20,8 +20,23 @@
               "icon": "lucide-file",
               "title": "ARCHITECTURE"
             }
+          },
+          {
+            "id": "a8a659ae50a89768",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "TESTING.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "TESTING"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -183,15 +198,22 @@
       "bases:Crear nueva base": false
     }
   },
-  "active": "e945d4fe8fafb4c1",
+  "active": "a8a659ae50a89768",
   "lastOpenFiles": [
+    "INDEX.md",
+    "ML_SERVICE.md",
+    "TESTING.md",
+    "SERVICES.md",
+    "FRONTEND.md",
+    "DATA_MODELS.md",
+    "CONFIGURATION.md",
+    "ARCHITECTURE.md",
     "ROADMAP.md.tmp.22972.1774120145900",
     "ROADMAP.md.tmp.22972.1774118572501",
     "ROADMAP.md.tmp.22972.1774116468431",
     "ROADMAP.md",
     "ROADMAP.md.tmp.22972.1774114586893",
     "ROADMAP.md.tmp.22972.1774106158750",
-    "ARCHITECTURE.md",
     "Bienvenido.md",
     "cree un enlace.md"
   ]

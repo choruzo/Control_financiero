@@ -12,15 +12,29 @@ tags:
   - base-de-datos
 related:
   - "[[ROADMAP]]"
+  - "[[API_REFERENCE]]"
+  - "[[DATA_MODELS]]"
+  - "[[SERVICES]]"
+  - "[[ML_SERVICE]]"
+  - "[[FRONTEND]]"
+  - "[[CONFIGURATION]]"
+  - "[[TESTING]]"
 status: activo
 created: 2026-03-21
-updated: 2026-03-21
+updated: 2026-03-22
 ---
 
 # FinControl - Arquitectura del Sistema
 
 > [!info] Documentación relacionada
 > - [[ROADMAP|Roadmap de Desarrollo]] — Fases, tareas y progreso del proyecto
+> - [[API_REFERENCE|Referencia de API]] — Todos los endpoints REST documentados
+> - [[DATA_MODELS|Modelos de Datos]] — Esquemas de BD, columnas y relaciones
+> - [[SERVICES|Capa de Servicios]] — Lógica de negocio y algoritmos
+> - [[ML_SERVICE|Servicio ML]] — Microservicio de IA (DistilBERT + LSTM)
+> - [[FRONTEND|Frontend]] — Cliente SvelteKit, stores y auth flow
+> - [[CONFIGURATION|Configuración y Despliegue]] — Docker, env vars y dependencias
+> - [[TESTING|Guía de Testing]] — 321 tests, patrones y cobertura
 
 ## 1. Visión General
 
