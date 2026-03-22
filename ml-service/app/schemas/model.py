@@ -8,4 +8,5 @@ class ModelStatusResponse(BaseModel):
     version: str | None = Field(None, description="Versión del modelo activo")
     accuracy: float | None = Field(None, description="Accuracy en el conjunto de validación")
     last_trained: datetime | None = Field(None, description="Fecha del último entrenamiento")
-    feedback_count: int = Field(0, description="Número de feedbacks almacenados para reentrenamiento")
+    feedback_count: int = Field(0, description="Número de feedbacks pendientes de reentrenamiento")
+    retrain_in_progress: bool = Field(False, description="True si hay un reentrenamiento en curso")

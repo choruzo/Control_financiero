@@ -121,11 +121,11 @@ updated: 2026-03-21
 - [x] Endpoint de feedback: usuario confirma/corrige → almacenar en Redis `ml:feedback` para retraining
 - [x] Integración automática en `POST /transactions` del backend: auto-asigna o sugiere categoría vía ML
 
-### 3.3 Reentrenamiento Automático
-- [ ] Celery task para reentrenamiento incremental
-- [ ] Celery Beat: programar reentrenamiento semanal (o cuando haya N correcciones)
-- [ ] Versionado de modelos (guardar métricas, rollback si empeora)
-- [ ] Endpoint de estado del modelo (accuracy, última fecha de training)
+### 3.3 Reentrenamiento Automático ✅
+- [x] Celery task para reentrenamiento incremental
+- [x] Celery Beat: programar reentrenamiento semanal (o cuando haya N correcciones)
+- [x] Versionado de modelos (guardar métricas, rollback si empeora)
+- [x] Endpoint de estado del modelo (accuracy, última fecha de training)
 
 **Entregable:** Categorización automática funcional con feedback loop y reentrenamiento.
 

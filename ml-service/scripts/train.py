@@ -15,112 +15,30 @@ El script:
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from collections import Counter
-from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 
 # Asegurar que la raíz del proyecto esté en el path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-import torch
-from torch.utils.data import DataLoader, Dataset
-from transformers import (
-    AutoModelForSequenceClassification,
-    AutoTokenizer,
-    get_linear_schedule_with_warmup,
+from app.ml.trainer import (
+    DATASET_PATH,
+    BASE_MODEL,
+    load_base_dataset,
+    run_incremental_retrain,
+    train_val_split,
 )
-
-from app.ml.categories import LABEL_TO_INDEX, NUM_LABELS
-
-BASE_MODEL = "distilbert-base-multilingual-cased"
-DATASET_PATH = Path(__file__).parent.parent / "data" / "dataset.json"
-
-
-class TransactionDataset(Dataset):
-    def __init__(self, texts: list[str], labels: list[int], tokenizer: Any, max_length: int = 128) -> None:
-        self.encodings = tokenizer(
-            texts,
-            max_length=max_length,
-            padding="max_length",
-            truncation=True,
-            return_tensors="pt",
-        )
-        self.labels = torch.tensor(labels, dtype=torch.long)
-
-    def __len__(self) -> int:
-        return len(self.labels)
-
-    def __getitem__(self, idx: int) -> dict:
-        return {
-            "input_ids": self.encodings["input_ids"][idx],
-            "attention_mask": self.encodings["attention_mask"][idx],
-            "labels": self.labels[idx],
-        }
-
-
-def load_dataset(path: Path) -> tuple[list[str], list[int]]:
-    data = json.loads(path.read_text(encoding="utf-8"))
-    texts = [item["text"] for item in data]
-    labels = [LABEL_TO_INDEX[item["label"]] for item in data]
-    return texts, labels
-
-
-def train_val_split(
-    texts: list[str],
-    labels: list[int],
-    val_ratio: float = 0.2,
-) -> tuple[list[str], list[int], list[str], list[int]]:
-    """Split estratificado simple por clase."""
-    from collections import defaultdict
-    import random
-
-    random.seed(42)
-    by_class: dict[int, list[int]] = defaultdict(list)
-    for i, label in enumerate(labels):
-        by_class[label].append(i)
-
-    train_idx, val_idx = [], []
-    for indices in by_class.values():
-        random.shuffle(indices)
-        split = max(1, int(len(indices) * val_ratio))
-        val_idx.extend(indices[:split])
-        train_idx.extend(indices[split:])
-
-    return (
-        [texts[i] for i in train_idx],
-        [labels[i] for i in train_idx],
-        [texts[i] for i in val_idx],
-        [labels[i] for i in val_idx],
-    )
-
-
-def evaluate(model: Any, loader: DataLoader, device: str) -> float:
-    model.eval()
-    correct = total = 0
-    with torch.no_grad():
-        for batch in loader:
-            input_ids = batch["input_ids"].to(device)
-            attention_mask = batch["attention_mask"].to(device)
-            labels = batch["labels"].to(device)
-            outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-            preds = outputs.logits.argmax(dim=-1)
-            correct += (preds == labels).sum().item()
-            total += len(labels)
-    return correct / total if total > 0 else 0.0
 
 
 def main(model_path: str, epochs: int, batch_size: int, device_override: str | None = None) -> None:
-    if device_override:
-        device = device_override
-    else:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+    import torch
+
+    device = device_override or ("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}")
     print(f"Cargando dataset desde {DATASET_PATH}...")
 
-    texts, labels = load_dataset(DATASET_PATH)
+    texts, labels = load_base_dataset()
     print(f"Total ejemplos: {len(texts)}")
     counts = Counter(labels)
     print(f"Distribución de clases: {dict(sorted(counts.items()))}")
@@ -128,76 +46,24 @@ def main(model_path: str, epochs: int, batch_size: int, device_override: str | N
     train_texts, train_labels, val_texts, val_labels = train_val_split(texts, labels)
     print(f"Train: {len(train_texts)} | Val: {len(val_texts)}")
 
-    print(f"Cargando tokenizer '{BASE_MODEL}'...")
-    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
-
-    train_ds = TransactionDataset(train_texts, train_labels, tokenizer)
-    val_ds = TransactionDataset(val_texts, val_labels, tokenizer)
-    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(val_ds, batch_size=batch_size)
-
-    print(f"Cargando modelo '{BASE_MODEL}' con {NUM_LABELS} clases...")
-    model = AutoModelForSequenceClassification.from_pretrained(
-        BASE_MODEL, num_labels=NUM_LABELS
-    )
-    model.to(device)
-
-    optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5, weight_decay=0.01)
-    total_steps = len(train_loader) * epochs
-    scheduler = get_linear_schedule_with_warmup(
-        optimizer, num_warmup_steps=total_steps // 10, num_training_steps=total_steps
-    )
-
-    best_accuracy = 0.0
-    for epoch in range(1, epochs + 1):
-        model.train()
-        total_loss = 0.0
-        for step, batch in enumerate(train_loader, 1):
-            input_ids = batch["input_ids"].to(device)
-            attention_mask = batch["attention_mask"].to(device)
-            batch_labels = batch["labels"].to(device)
-
-            optimizer.zero_grad()
-            outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=batch_labels)
-            loss = outputs.loss
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            optimizer.step()
-            scheduler.step()
-            total_loss += loss.item()
-
-            if step % 5 == 0 or step == len(train_loader):
-                print(f"  Epoch {epoch}/{epochs} | Step {step}/{len(train_loader)} | Loss: {total_loss/step:.4f}")
-
-        accuracy = evaluate(model, val_loader, device)
-        print(f"Epoch {epoch} finalizado. Val accuracy: {accuracy:.4f}")
-        if accuracy > best_accuracy:
-            best_accuracy = accuracy
-
-    # Guardar modelo
+    # El entrenamiento inicial parte del BASE_MODEL de HuggingFace.
+    # Pasamos una ruta inexistente para forzar el fallback a BASE_MODEL,
+    # y current_version="0.9" para que la versión resultante sea "1.0".
     output_dir = Path(model_path) / "categorizer"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    model.save_pretrained(str(output_dir))
-    tokenizer.save_pretrained(str(output_dir))
+    print(f"Cargando modelo base '{BASE_MODEL}'...")
 
-    metadata = {
-        "version": "1.0",
-        "base_model": BASE_MODEL,
-        "num_labels": NUM_LABELS,
-        "epochs": epochs,
-        "batch_size": batch_size,
-        "accuracy": round(best_accuracy, 4),
-        "train_examples": len(train_texts),
-        "val_examples": len(val_texts),
-        "trained_at": datetime.now(UTC).isoformat(),
-        "device": device,
-    }
-    (output_dir / "metadata.json").write_text(
-        json.dumps(metadata, indent=2), encoding="utf-8"
+    metadata = run_incremental_retrain(
+        source_model_path=Path(model_path) / "_initial_nonexistent",
+        output_path=output_dir,
+        feedback_items=[],
+        epochs=epochs,
+        batch_size=batch_size,
+        device=device,
+        current_version="0.9",
     )
 
     print(f"\nModelo guardado en {output_dir}")
-    print(f"Best val accuracy: {best_accuracy:.4f}")
+    print(f"Best val accuracy: {metadata['accuracy']:.4f}")
     print(f"Metadata: {metadata}")
 
 

@@ -120,6 +120,15 @@ class ModelManager:
             logger.error("prediction_failed", error=str(exc))
             return "Otros", 0.0
 
+    async def reload(self) -> None:
+        """Recarga el modelo desde disco tras un reentrenamiento exitoso."""
+        self._model = None
+        self._tokenizer = None
+        self.loaded = False
+        self.metadata = {}
+        await self.load()
+        logger.info("model_reloaded", loaded=self.loaded, version=self.metadata.get("version"))
+
     def get_status(self) -> dict:
         """Devuelve el estado actual del modelo para el endpoint /model/status."""
         last_trained_raw = self.metadata.get("trained_at")
@@ -135,5 +144,4 @@ class ModelManager:
             "version": self.metadata.get("version"),
             "accuracy": self.metadata.get("accuracy"),
             "last_trained": last_trained,
-            "feedback_count": 0,  # Fase 3.3: contar desde Redis
         }

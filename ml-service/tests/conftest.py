@@ -11,6 +11,7 @@ async def setup_model_manager():
     manager = ModelManager(model_path="/tmp/nonexistent_test_model", device="cpu")
     await manager.load()  # No hay modelo → queda en modo degradado (loaded=False)
     app.state.model_manager = manager
+    app.state.retrain_in_progress = False
 
 
 @pytest.fixture

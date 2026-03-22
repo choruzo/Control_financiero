@@ -88,6 +88,22 @@ class MLClient:
                 "ml_available": False,
             }
 
+    def trigger_retrain_sync(self) -> dict:
+        """
+        Dispara el reentrenamiento incremental del ml-service (llamada síncrona).
+
+        Diseñado para uso desde Celery tasks, que no corren en un asyncio event loop.
+        Siempre devuelve un dict con 'status' y 'ml_available'; nunca lanza excepción.
+        """
+        try:
+            with httpx.Client(timeout=httpx.Timeout(30.0, connect=5.0)) as client:
+                response = client.post(f"{self._base_url}/retrain")
+                response.raise_for_status()
+                return {**response.json(), "ml_available": True}
+        except (httpx.TimeoutException, httpx.RequestError, httpx.HTTPStatusError) as exc:
+            logger.warning("ml_client_retrain_sync_error", error=str(exc), url=self._base_url)
+            return {"status": "error", "ml_available": False, "reason": str(exc)}
+
     async def health_check(self) -> bool:
         """Retorna True si el ml-service responde correctamente."""
         try:

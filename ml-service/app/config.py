@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     # Redis (para almacenar feedback y estado del modelo)
     redis_url: str = "redis://redis:6379/3"
 
+    # Reentrenamiento incremental
+    min_feedback_for_retrain: int = 10
+    retrain_epochs: int = 2
+    retrain_batch_size: int = 16
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "env_prefix": "ML_"}
 
 

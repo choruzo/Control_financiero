@@ -211,7 +211,27 @@ Con la **Fase 3.2** se han añadido:
 - `backend/app/api/v1/transactions.py` — `POST /transactions` usa `create_transaction_with_ml()` en lugar de `create_transaction()`
 - `backend/tests/test_transactions.py` — 5 nuevos tests de integración ML con respx (auto-asignación, sugerencia, campos ML en respuesta, skip cuando hay categoría explícita)
 
-Los módulos `tasks/` y `utils/` financieros (TIR, VAN, Monte Carlo) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
+Con la **Fase 3.3** se han añadido:
+
+- `ml-service/app/ml/trainer.py` — Módulo reutilizable: `build_training_examples` (dataset base + feedback Redis), `run_incremental_retrain` (fine-tune desde modelo activo), `get_next_version`, `evaluate`, `train_val_split`
+- `ml-service/scripts/train.py` — Refactorizado para importar de `app.ml.trainer`; sigue funcionando como CLI
+- `ml-service/app/ml/model_manager.py` — Añadido `async reload()` para recargar modelo en caliente
+- `ml-service/app/schemas/model.py` — `ModelStatusResponse` añade `retrain_in_progress: bool`
+- `ml-service/app/schemas/retrain.py` — `RetrainResponse(status, feedback_count, reason?, model_version?)`
+- `ml-service/app/routers/model.py` — `GET /model/status` lee `feedback_count` real de Redis y `retrain_in_progress` desde `app.state`
+- `ml-service/app/routers/retrain.py` — `POST /retrain`: lee feedback Redis, verifica umbrales, lanza training en ThreadPoolExecutor, devuelve 202. Callback promueve candidato si accuracy ≥ activo−2%, descarta si no. History en `/app/models/history/`.
+- `ml-service/app/config.py` — Añadidos: `min_feedback_for_retrain=10`, `retrain_epochs=2`, `retrain_batch_size=16`
+- `ml-service/app/main.py` — Registrado router `retrain`, inicializado `app.state.retrain_in_progress=False`
+- `backend/app/tasks/celery_app.py` — Instancia `Celery` + `beat_schedule` semanal (domingo 3AM, configurable)
+- `backend/app/tasks/__init__.py` — Exporta `celery_app` para que `celery -A app.tasks` funcione
+- `backend/app/tasks/ml_retraining.py` — Task `trigger_ml_retrain`: llama `ml_client.trigger_retrain_sync()`, degradación graceful
+- `backend/app/services/ml_client.py` — Añadido `trigger_retrain_sync()` síncrono para uso desde Celery
+- `backend/app/config.py` — Añadidos: `ml_retrain_min_feedback`, `ml_retrain_schedule_hour`, `ml_retrain_schedule_day_of_week`
+- `ml-service/tests/test_trainer.py` — 11 tests unitarios del módulo trainer
+- `ml-service/tests/test_retrain.py` — 12 tests del endpoint `/retrain` y callbacks
+- `backend/tests/test_celery_tasks.py` — 7 tests de `trigger_retrain_sync` y la Celery task
+
+Los módulos `utils/` financieros (TIR, VAN, Monte Carlo) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
 
 ## Validación con tests
 
