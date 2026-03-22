@@ -208,3 +208,37 @@ class MortgageSimulationResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# ── AI Affordability (Fase 4.3) ───────────────────────────────────────────────
+
+
+class StressTestResult(BaseModel):
+    euribor_rate: Decimal
+    euribor_label: str
+    max_loan_p10: Decimal
+    max_loan_p50: Decimal
+    max_loan_p90: Decimal
+    monthly_payment_p50: Decimal
+    is_affordable: bool
+
+
+class AIAffordabilityResponse(BaseModel):
+    # Capacidad basada en ingresos predichos por ML
+    forecast_monthly_income_p10: Decimal
+    forecast_monthly_income_p50: Decimal
+    forecast_monthly_income_p90: Decimal
+    forecast_max_monthly_payment: Decimal   # 35 % del income_p50 predicho
+    forecast_recommended_max_loan: Decimal  # fijo 25 años al tipo de referencia
+
+    # Comparación con capacidad actual (últimos 3 meses, método tradicional)
+    current_based: AffordabilityResponse
+
+    # Stress tests por nivel de Euríbor
+    stress_tests: list[StressTestResult]
+
+    # Metadatos
+    ml_available: bool
+    historical_months_used: int
+    months_ahead_used: int
+    model_used: str

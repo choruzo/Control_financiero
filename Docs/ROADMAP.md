@@ -153,10 +153,10 @@ updated: 2026-03-21
 - [x] Cálculo del impacto fiscal (IRPF) en cada escenario
 - [x] API: POST /scenarios/analyze con parámetros base + modificaciones → resultado con distribución P10/P50/P90
 
-### 4.3 Predicción de Máxima Hipoteca con IA
-- [ ] Combinar predicción de ingresos futuros + escenarios de tipos
-- [ ] Calcular capacidad de endeudamiento a X años vista
-- [ ] Stress test: "¿podré pagar si el Euríbor sube al 5%?"
+### 4.3 Predicción de Máxima Hipoteca con IA ✅
+- [x] Combinar predicción de ingresos futuros + escenarios de tipos
+- [x] Calcular capacidad de endeudamiento a X años vista
+- [x] Stress test: "¿podré pagar si el Euríbor sube al 5%?"
 
 **Entregable:** Predicciones de cashflow, análisis de escenarios what-if y asesor hipotecario inteligente.
 

@@ -7,19 +7,24 @@ from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.models.mortgage import MortgageSimulation
 from app.models.transaction import Transaction
 from app.schemas.mortgage import (
     AffordabilityResponse,
+    AIAffordabilityResponse,
     MaxLoanOption,
     MortgageCompareRequest,
     MortgageCompareResponse,
-    MortgageScenarioSummary,
     MortgageSaveRequest,
+    MortgageScenarioSummary,
     MortgageSimulateRequest,
     MortgageSimulationResult,
     ScenarioParams,
+    StressTestResult,
 )
+from app.services import analytics as analytics_svc
+from app.services.ml_client import ml_client
 from app.utils.mortgage import (
     AmortizationRow,
     ClosingCostsResult,
@@ -355,3 +360,213 @@ async def delete_simulation(
     sim = await _get_simulation_or_404(db, user_id, sim_id)
     await db.delete(sim)
     await db.flush()
+
+
+# ── AI Affordability (Fase 4.3) ───────────────────────────────────────────────
+
+
+_DEFAULT_STRESS_LEVELS = [Decimal("0"), Decimal("1"), Decimal("2"), Decimal("3")]
+_REFERENCE_RATE = Decimal("3.5")   # tipo de referencia fijo para forecast_recommended_max_loan
+_REFERENCE_YEARS = 25
+
+
+async def get_ai_affordability(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    months_ahead: int = 12,
+    term_years: int = 25,
+    tax_config_id: uuid.UUID | None = None,
+    gross_annual: Decimal | None = None,
+    euribor_stress_levels: list[Decimal] | None = None,
+) -> AIAffordabilityResponse:
+    """Predicción de máxima hipoteca combinando forecast ML y stress tests de Euríbor.
+
+    Pipeline:
+    1. Capacidad actual (baseline) via get_affordability o _irpf_monthly
+    2. Historial financiero (últimos 24 meses)
+    3. Forecast ML (LSTM/Prophet, degradación graceful)
+    4. Ingresos promedio predichos (P10/P50/P90)
+    5. Euríbor base desde MortgageSimulation guardada o config
+    6. Stress tests por nivel de Euríbor
+    """
+    levels = euribor_stress_levels if euribor_stress_levels is not None else _DEFAULT_STRESS_LEVELS
+
+    # 1. Capacidad actual (baseline)
+    if gross_annual is not None:
+        # Calcular neto desde bruto anual sin TaxConfig en BD
+        from datetime import UTC, datetime
+
+        from app.services.scenarios import _irpf_monthly  # import local para evitar ciclos
+
+        tax_year = datetime.now(UTC).year
+        retenciones = _irpf_monthly(gross_annual, tax_year)
+        monthly_income_current = _q2(gross_annual / Decimal("12") - retenciones)
+        monthly_income_current = max(Decimal("0"), monthly_income_current)
+        max_monthly_current = _q2(monthly_income_current * Decimal("0.35"))
+
+        current_options: list[MaxLoanOption] = []
+        for description, rate_type, rate, years in [
+            ("Fijo 15 años al 3.5 %", "fixed", Decimal("3.5"), 15),
+            ("Fijo 20 años al 3.5 %", "fixed", Decimal("3.5"), 20),
+            ("Fijo 25 años al 3.5 %", "fixed", Decimal("3.5"), 25),
+            ("Fijo 30 años al 3.5 %", "fixed", Decimal("3.5"), 30),
+            ("Variable 20 años (Eur 3.5 % + 0.8 %)", "variable", Decimal("4.3"), 20),
+            ("Variable 30 años (Eur 3.5 % + 0.8 %)", "variable", Decimal("4.3"), 30),
+        ]:
+            max_loan = _max_loan_for_payment(max_monthly_current, rate, years)
+            pmt = monthly_payment(max_loan, rate, years)
+            current_options.append(
+                MaxLoanOption(
+                    description=description,
+                    rate_type=rate_type,
+                    interest_rate=rate,
+                    term_years=years,
+                    max_loan=max_loan,
+                    monthly_payment=pmt,
+                )
+            )
+        recommended_current = (
+            current_options[2].max_loan if len(current_options) > 2 else Decimal("0")
+        )
+        current_based = AffordabilityResponse(
+            monthly_net_income=monthly_income_current,
+            max_monthly_payment=max_monthly_current,
+            recommended_max_loan=recommended_current,
+            options=current_options,
+        )
+    else:
+        current_based = await get_affordability(db, user_id, tax_config_id)
+
+    # 2. Historial financiero
+    cashflow = await analytics_svc.get_cashflow(db, user_id, months=24)
+    historical = [
+        {
+            "year": m.year,
+            "month": m.month,
+            "income": float(m.total_income),
+            "expenses": float(m.total_expenses),
+        }
+        for m in cashflow
+        if m.total_income > Decimal("0") or m.total_expenses > Decimal("0")
+    ]
+
+    # 3. Forecast ML (degradación graceful)
+    forecast = await ml_client.forecast(historical, months_ahead)
+    ml_available = forecast.ml_available
+
+    # Fallback si no hay predicciones
+    if not forecast.predictions:
+        if historical:
+            avg_inc = sum(h["income"] for h in historical) / len(historical)
+        else:
+            avg_inc = float(current_based.monthly_net_income)
+        sigma = avg_inc * 0.10
+        from app.services.ml_client import MLClient as _MLClient
+
+        forecast = _MLClient._unavailable_forecast_response(historical, months_ahead)
+        for pt in forecast.predictions:
+            pt.income_p50 = avg_inc
+            pt.income_p10 = max(0.0, avg_inc - sigma * 1.28)
+            pt.income_p90 = avg_inc + sigma * 1.28
+
+    # 4. Ingresos promedio predichos (P10/P50/P90)
+    n = len(forecast.predictions)
+    if n > 0:
+        income_p50 = _q2(Decimal(str(sum(p.income_p50 for p in forecast.predictions) / n)))
+        income_p10 = _q2(Decimal(str(sum(p.income_p10 for p in forecast.predictions) / n)))
+        income_p90 = _q2(Decimal(str(sum(p.income_p90 for p in forecast.predictions) / n)))
+    else:
+        income_p50 = current_based.monthly_net_income
+        income_p10 = income_p50
+        income_p90 = income_p50
+
+    # Garantizar p10 ≤ p50 ≤ p90
+    income_p10 = min(income_p10, income_p50)
+    income_p90 = max(income_p90, income_p50)
+
+    # 5. Euríbor base y spread desde MortgageSimulation guardada o config
+    euribor_base = Decimal(str(settings.ai_affordability_default_euribor))
+    spread_base = Decimal(str(settings.ai_affordability_default_spread))
+
+    sim_result = await db.execute(
+        select(MortgageSimulation)
+        .where(
+            MortgageSimulation.user_id == user_id,
+            MortgageSimulation.rate_type.in_(["variable", "mixed"]),
+        )
+        .order_by(MortgageSimulation.created_at.desc())
+        .limit(1)
+    )
+    saved_sim = sim_result.scalar_one_or_none()
+    if saved_sim is not None:
+        if saved_sim.euribor_rate is not None:
+            euribor_base = saved_sim.euribor_rate
+        if saved_sim.spread is not None:
+            spread_base = saved_sim.spread
+
+    # 6. Stress tests
+    # Calcular préstamo baseline (nivel 0) para el cálculo de is_affordable:
+    # "Si pido el máximo al Euríbor actual, ¿podré pagarlo si sube?"
+    affordable_limit = _q2(income_p50 * Decimal("0.35"))
+    first_level = levels[0] if levels else Decimal("0")
+    first_effective_rate = _q2(euribor_base + first_level + spread_base)
+    baseline_max_loan_p50 = _max_loan_for_payment(
+        affordable_limit, first_effective_rate, term_years
+    )
+
+    stress_tests: list[StressTestResult] = []
+    for level in levels:
+        euribor_abs = _q2(euribor_base + level)
+        effective_rate = _q2(euribor_abs + spread_base)
+
+        max_loan_p10 = _max_loan_for_payment(
+            _q2(income_p10 * Decimal("0.35")), effective_rate, term_years
+        )
+        max_loan_p50 = _max_loan_for_payment(
+            _q2(income_p50 * Decimal("0.35")), effective_rate, term_years
+        )
+        max_loan_p90 = _max_loan_for_payment(
+            _q2(income_p90 * Decimal("0.35")), effective_rate, term_years
+        )
+
+        # Cuota del préstamo baseline a ESTA tasa (responde: "¿puedo seguir pagándolo?")
+        try:
+            monthly_pmt_p50 = monthly_payment(baseline_max_loan_p50, effective_rate, term_years)
+        except Exception:
+            monthly_pmt_p50 = Decimal("0")
+
+        is_affordable = monthly_pmt_p50 <= affordable_limit
+
+        label = "Euríbor actual" if level == Decimal("0") else f"+{level:f}%"
+
+        stress_tests.append(
+            StressTestResult(
+                euribor_rate=euribor_abs,
+                euribor_label=label,
+                max_loan_p10=max_loan_p10,
+                max_loan_p50=max_loan_p50,
+                max_loan_p90=max_loan_p90,
+                monthly_payment_p50=monthly_pmt_p50,
+                is_affordable=is_affordable,
+            )
+        )
+
+    # Capacidad recomendada con ingresos predichos (fijo 25 años al tipo de referencia)
+    forecast_max_monthly = _q2(income_p50 * Decimal("0.35"))
+    forecast_recommended = _max_loan_for_payment(
+        forecast_max_monthly, _REFERENCE_RATE, _REFERENCE_YEARS
+    )
+
+    return AIAffordabilityResponse(
+        forecast_monthly_income_p10=income_p10,
+        forecast_monthly_income_p50=income_p50,
+        forecast_monthly_income_p90=income_p90,
+        forecast_max_monthly_payment=forecast_max_monthly,
+        forecast_recommended_max_loan=forecast_recommended,
+        current_based=current_based,
+        stress_tests=stress_tests,
+        ml_available=ml_available,
+        historical_months_used=len(historical),
+        months_ahead_used=months_ahead,
+        model_used=forecast.model_used,
+    )

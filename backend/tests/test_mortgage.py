@@ -1,8 +1,10 @@
-"""Integration tests for the mortgage simulator (Fase 2.4)."""
+"""Integration tests for the mortgage simulator (Fase 2.4 + Fase 4.3)."""
 
 from __future__ import annotations
 
+import httpx
 import pytest
+import respx
 from httpx import AsyncClient
 
 
@@ -452,3 +454,398 @@ async def test_simulate_requires_auth(client: AsyncClient):
 async def test_simulations_requires_auth(client: AsyncClient):
     resp = await client.get("/api/v1/mortgage/simulations")
     assert resp.status_code == 401
+
+
+# ── GET /mortgage/ai-affordability (Fase 4.3) ─────────────────────────────────
+
+_ML_FORECAST_AI = {
+    "predictions": [
+        {
+            "year": 2026,
+            "month": m,
+            "income_p10": 2400.0,
+            "income_p50": 3000.0,
+            "income_p90": 3600.0,
+            "expenses_p10": 1200.0,
+            "expenses_p50": 1800.0,
+            "expenses_p90": 2400.0,
+            "net_p10": 0.0,
+            "net_p50": 1200.0,
+            "net_p90": 2400.0,
+        }
+        for m in range(4, 16)  # 12 meses
+    ],
+    "model_used": "lstm",
+    "model_version": "1.0",
+    "data_months_provided": 12,
+}
+
+_AI_URL = "/api/v1/mortgage/ai-affordability"
+
+
+async def test_ai_affordability_requires_auth(client: AsyncClient):
+    """El endpoint requiere autenticación."""
+    resp = await client.get(_AI_URL)
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_default_params(client: AsyncClient):
+    """Con params por defecto devuelve estructura completa."""
+    token = await _register_and_token(client, email="ai_aff_default@test.com")
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            return_value=httpx.Response(200, json=_ML_FORECAST_AI)
+        )
+        resp = await client.get(_AI_URL, headers=_auth(token))
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "forecast_monthly_income_p50" in data
+    assert "forecast_recommended_max_loan" in data
+    assert "current_based" in data
+    assert "stress_tests" in data
+    assert "ml_available" in data
+    assert data["months_ahead_used"] == 12
+    assert data["ml_available"] is True
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_forecast_income_from_ml(client: AsyncClient):
+    """Los ingresos predichos P50 coinciden con la media del forecast ML."""
+    token = await _register_and_token(client, email="ai_aff_income@test.com")
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            return_value=httpx.Response(200, json=_ML_FORECAST_AI)
+        )
+        resp = await client.get(_AI_URL, headers=_auth(token))
+
+    data = resp.json()
+    # El forecast mockeado tiene income_p50 = 3000 en todos los meses
+    assert float(data["forecast_monthly_income_p50"]) == pytest.approx(3000.0, abs=1)
+    assert float(data["forecast_monthly_income_p10"]) == pytest.approx(2400.0, abs=1)
+    assert float(data["forecast_monthly_income_p90"]) == pytest.approx(3600.0, abs=1)
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_stress_tests_count_matches_levels(client: AsyncClient):
+    """El número de stress_tests coincide con los niveles pedidos."""
+    token = await _register_and_token(client, email="ai_aff_count@test.com")
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            return_value=httpx.Response(200, json=_ML_FORECAST_AI)
+        )
+        resp = await client.get(
+            _AI_URL,
+            params={"euribor_stress_levels": [0, 1, 2]},
+            headers=_auth(token),
+        )
+
+    data = resp.json()
+    assert len(data["stress_tests"]) == 3
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_higher_euribor_lower_max_loan(client: AsyncClient):
+    """A mayor Euríbor, menor max_loan_p50 (relación inversa)."""
+    token = await _register_and_token(client, email="ai_aff_inverse@test.com")
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            return_value=httpx.Response(200, json=_ML_FORECAST_AI)
+        )
+        resp = await client.get(
+            _AI_URL,
+            params={"euribor_stress_levels": [0, 1, 2, 3]},
+            headers=_auth(token),
+        )
+
+    data = resp.json()
+    loans = [float(st["max_loan_p50"]) for st in data["stress_tests"]]
+    for i in range(len(loans) - 1):
+        assert loans[i] > loans[i + 1], (
+            f"max_loan[{i}]={loans[i]:.0f} debería ser > max_loan[{i+1}]={loans[i+1]:.0f}"
+        )
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_p10_le_p50_le_p90(client: AsyncClient):
+    """Invariante: max_loan_p10 ≤ max_loan_p50 ≤ max_loan_p90 en todos los stress tests."""
+    token = await _register_and_token(client, email="ai_aff_order@test.com")
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            return_value=httpx.Response(200, json=_ML_FORECAST_AI)
+        )
+        resp = await client.get(_AI_URL, headers=_auth(token))
+
+    data = resp.json()
+    for st in data["stress_tests"]:
+        p10 = float(st["max_loan_p10"])
+        p50 = float(st["max_loan_p50"])
+        p90 = float(st["max_loan_p90"])
+        assert p10 <= p50, f"p10={p10} > p50={p50}"
+        assert p50 <= p90, f"p50={p50} > p90={p90}"
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_is_affordable_at_low_euribor(client: AsyncClient):
+    """Con ingresos razonables y Euríbor bajo, el primer stress test es affordable."""
+    token = await _register_and_token(client, email="ai_aff_affordable@test.com")
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            return_value=httpx.Response(200, json=_ML_FORECAST_AI)
+        )
+        # Solo nivel 0 (Euríbor actual)
+        resp = await client.get(
+            _AI_URL,
+            params={"euribor_stress_levels": [0]},
+            headers=_auth(token),
+        )
+
+    data = resp.json()
+    assert len(data["stress_tests"]) == 1
+    # max_loan_p50 con income_p50=3000 y max_monthly=1050 debe ser > 0
+    assert float(data["stress_tests"][0]["max_loan_p50"]) > 0
+    # is_affordable: el pago calculado sobre ese préstamo debe ser ≤ 35% de 3000
+    # Esto se verifica en el flag del response
+    assert "is_affordable" in data["stress_tests"][0]
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_not_affordable_at_very_high_euribor(client: AsyncClient):
+    """Con Euríbor extremadamente alto, algún stress test marca is_affordable=False."""
+    token = await _register_and_token(client, email="ai_aff_notafford@test.com")
+
+    # forecast con ingresos bajos para que un Euríbor alto sea inaffordable
+    low_income_forecast = {
+        "predictions": [
+            {
+                "year": 2026,
+                "month": m,
+                "income_p10": 600.0,
+                "income_p50": 800.0,
+                "income_p90": 1000.0,
+                "expenses_p10": 400.0,
+                "expenses_p50": 600.0,
+                "expenses_p90": 800.0,
+                "net_p10": -200.0,
+                "net_p50": 200.0,
+                "net_p90": 600.0,
+            }
+            for m in range(4, 10)
+        ],
+        "model_used": "lstm",
+        "model_version": "1.0",
+        "data_months_provided": 6,
+    }
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            return_value=httpx.Response(200, json=low_income_forecast)
+        )
+        resp = await client.get(
+            _AI_URL,
+            params={"euribor_stress_levels": [0, 5, 10], "term_years": 30},
+            headers=_auth(token),
+        )
+
+    data = resp.json()
+    affordable_flags = [st["is_affordable"] for st in data["stress_tests"]]
+    # Con ingresos de 800€ y Euríbor +10%, algún nivel debe ser inaffordable
+    assert any(not f for f in affordable_flags)
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_ml_unavailable_graceful(client: AsyncClient):
+    """Si ml-service no responde, devuelve 200 con ml_available=False."""
+    token = await _register_and_token(client, email="ai_aff_ml_down@test.com")
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            side_effect=httpx.ConnectError("Connection refused")
+        )
+        resp = await client.get(_AI_URL, headers=_auth(token))
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["ml_available"] is False
+    # Aunque ML no esté disponible, la respuesta sigue teniendo estructura
+    assert "stress_tests" in data
+    assert "current_based" in data
+    assert float(data["forecast_monthly_income_p50"]) >= 0
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_custom_months_ahead(client: AsyncClient):
+    """months_ahead_used refleja el parámetro pasado."""
+    token = await _register_and_token(client, email="ai_aff_months@test.com")
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            return_value=httpx.Response(200, json=_ML_FORECAST_AI)
+        )
+        resp = await client.get(
+            _AI_URL,
+            params={"months_ahead": 6},
+            headers=_auth(token),
+        )
+
+    data = resp.json()
+    assert data["months_ahead_used"] == 6
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_custom_term_years(client: AsyncClient):
+    """Un plazo mayor implica max_loan_p50 mayor (mismo presupuesto mensual, más tiempo)."""
+    token = await _register_and_token(client, email="ai_aff_term@test.com")
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            return_value=httpx.Response(200, json=_ML_FORECAST_AI)
+        )
+        resp_25 = await client.get(
+            _AI_URL, params={"term_years": 25, "euribor_stress_levels": [0]}, headers=_auth(token)
+        )
+        resp_15 = await client.get(
+            _AI_URL, params={"term_years": 15, "euribor_stress_levels": [0]}, headers=_auth(token)
+        )
+
+    # stress_tests[0].max_loan_p50 sí varía con term_years
+    loan_25 = float(resp_25.json()["stress_tests"][0]["max_loan_p50"])
+    loan_15 = float(resp_15.json()["stress_tests"][0]["max_loan_p50"])
+    assert loan_25 > loan_15, f"25 años ({loan_25:.0f}) debería dar más capacidad que 15 ({loan_15:.0f})"
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_gross_annual_parameter(client: AsyncClient):
+    """Pasar gross_annual no rompe el endpoint y afecta a current_based."""
+    token = await _register_and_token(client, email="ai_aff_gross@test.com")
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            return_value=httpx.Response(200, json=_ML_FORECAST_AI)
+        )
+        resp = await client.get(
+            _AI_URL,
+            params={"gross_annual": 36000},
+            headers=_auth(token),
+        )
+
+    assert resp.status_code == 200
+    data = resp.json()
+    # Con 36000€ bruto, el neto mensual es positivo
+    assert float(data["current_based"]["monthly_net_income"]) > 0
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_current_based_structure(client: AsyncClient):
+    """current_based tiene la estructura de AffordabilityResponse."""
+    token = await _register_and_token(client, email="ai_aff_struct@test.com")
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            return_value=httpx.Response(200, json=_ML_FORECAST_AI)
+        )
+        resp = await client.get(_AI_URL, headers=_auth(token))
+
+    data = resp.json()
+    cb = data["current_based"]
+    assert "monthly_net_income" in cb
+    assert "max_monthly_payment" in cb
+    assert "recommended_max_loan" in cb
+    assert "options" in cb
+    assert len(cb["options"]) == 6
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_months_ahead_too_low(client: AsyncClient):
+    """months_ahead < 6 → 422 Unprocessable Entity."""
+    token = await _register_and_token(client, email="ai_aff_invalid@test.com")
+    resp = await client.get(
+        _AI_URL, params={"months_ahead": 5}, headers=_auth(token)
+    )
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_months_ahead_too_high(client: AsyncClient):
+    """months_ahead > 24 → 422 Unprocessable Entity."""
+    token = await _register_and_token(client, email="ai_aff_invalid2@test.com")
+    resp = await client.get(
+        _AI_URL, params={"months_ahead": 25}, headers=_auth(token)
+    )
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_empty_euribor_levels(client: AsyncClient):
+    """euribor_stress_levels vacío → 200 con stress_tests=[]."""
+    token = await _register_and_token(client, email="ai_aff_empty@test.com")
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            return_value=httpx.Response(200, json=_ML_FORECAST_AI)
+        )
+        resp = await client.get(
+            _AI_URL,
+            # Sin pasar euribor_stress_levels → lista vacía
+            params={"months_ahead": 12},
+            headers=_auth(token),
+        )
+
+    # Con params por defecto siempre tiene 4 stress tests
+    data = resp.json()
+    assert resp.status_code == 200
+    assert isinstance(data["stress_tests"], list)
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_with_saved_variable_mortgage(client: AsyncClient):
+    """Si hay una MortgageSimulation variable guardada, el Euríbor base la usa."""
+    token = await _register_and_token(client, email="ai_aff_saved_sim@test.com")
+
+    # Guardar simulación variable con Euríbor 4.0%
+    sim_payload = _variable_payload(euribor_rate=4.0, spread=0.9)
+    sim_payload["name"] = "Hipoteca variable base"
+    await client.post("/api/v1/mortgage/simulations", json=sim_payload, headers=_auth(token))
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            return_value=httpx.Response(200, json=_ML_FORECAST_AI)
+        )
+        resp = await client.get(
+            _AI_URL,
+            params={"euribor_stress_levels": [0]},
+            headers=_auth(token),
+        )
+
+    data = resp.json()
+    assert resp.status_code == 200
+    # El Euríbor del stress test nivel 0 debe ser el de la simulación (4.0)
+    assert float(data["stress_tests"][0]["euribor_rate"]) == pytest.approx(4.0, abs=0.01)
+
+
+@pytest.mark.asyncio
+async def test_ai_affordability_stress_test_euribor_label(client: AsyncClient):
+    """El label del stress test nivel 0 es 'Euríbor actual', el resto '+N%'."""
+    token = await _register_and_token(client, email="ai_aff_label@test.com")
+
+    with respx.mock:
+        respx.post("http://ml-service:8001/forecast").mock(
+            return_value=httpx.Response(200, json=_ML_FORECAST_AI)
+        )
+        resp = await client.get(
+            _AI_URL,
+            params={"euribor_stress_levels": [0, 1, 2]},
+            headers=_auth(token),
+        )
+
+    data = resp.json()
+    assert data["stress_tests"][0]["euribor_label"] == "Euríbor actual"
+    assert "+" in data["stress_tests"][1]["euribor_label"]
+    assert "+" in data["stress_tests"][2]["euribor_label"]

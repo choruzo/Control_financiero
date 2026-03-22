@@ -44,6 +44,11 @@ class Settings(BaseSettings):
     # Escenarios Monte Carlo
     scenario_monte_carlo_simulations: int = 1000
 
+    # AI Affordability (Fase 4.3)
+    ai_affordability_default_euribor: float = 3.5   # Euríbor base si no hay sim guardada
+    ai_affordability_default_spread: float = 0.8    # Spread base si no hay sim guardada
+    ai_affordability_monte_carlo_simulations: int = 1000
+
     @property
     def database_url(self) -> str:
         return (

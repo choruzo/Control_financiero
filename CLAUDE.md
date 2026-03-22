@@ -252,6 +252,14 @@ Con la **Fase 4.1** se han añadido:
 - `backend/app/config.py` — Nuevos campos: `ml_forecast_min_months`, `ml_forecast_max_ahead`, `ml_forecast_retrain_schedule_hour`
 - `backend/tests/test_forecasting.py` — 11 tests de integración
 
+Con la **Fase 4.3** se han añadido:
+
+- `backend/app/schemas/mortgage.py` — Añadidos `StressTestResult` y `AIAffordabilityResponse`: respuesta del nuevo endpoint con ingresos predichos P10/P50/P90, max_loan por percentil, stress tests por nivel de Euríbor, comparación vs capacidad actual
+- `backend/app/services/mortgage.py` — Nueva función `get_ai_affordability()`: pipeline de 6 pasos (capacidad actual, historial, forecast ML, ingresos promedio predichos, Euríbor base desde MortgageSimulation, stress tests). Reutiliza `_max_loan_for_payment`, `_irpf_monthly` (import local), `ml_client.forecast()` y `analytics_svc.get_cashflow()`. El flag `is_affordable` compara el pago del préstamo baseline (nivel 0) a la tasa estresada vs 35% del ingreso predicho P50.
+- `backend/app/api/v1/mortgage.py` — Endpoint `GET /mortgage/ai-affordability` con query params: `months_ahead` (6-24), `term_years` (5-40), `tax_config_id`, `gross_annual`, `euribor_stress_levels` (lista de incrementos)
+- `backend/app/config.py` — Nuevos campos: `ai_affordability_default_euribor` (3.5), `ai_affordability_default_spread` (0.8), `ai_affordability_monte_carlo_simulations` (1000)
+- `backend/tests/test_mortgage.py` — 18 nuevos tests de integración con `respx` para mockear ml-service (auth, estructura, ML degradado, invariantes P10≤P50≤P90, Euríbor decreciente, is_affordable, validación, labels)
+
 Con la **Fase 4.2** se han añadido:
 
 - `backend/app/utils/monte_carlo.py` — Funciones puras NumPy: `simulate_net_distribution` (MC con σ estimado del intervalo P10/P90), `apply_scenario_modifications` (variaciones deterministas)

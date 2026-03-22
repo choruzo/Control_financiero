@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal  # noqa: I001
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +9,7 @@ from app.database import get_db
 from app.models.user import User
 from app.schemas.mortgage import (
     AffordabilityResponse,
+    AIAffordabilityResponse,
     MortgageCompareRequest,
     MortgageCompareResponse,
     MortgageSaveRequest,
@@ -62,6 +64,58 @@ async def get_affordability(
     from a saved tax configuration instead (more accurate for salaried workers).
     """
     return await mortgage_service.get_affordability(db, current_user.id, tax_config_id)
+
+
+@router.get("/ai-affordability", response_model=AIAffordabilityResponse)
+async def get_ai_affordability(
+    months_ahead: int = Query(
+        default=12,
+        ge=6,
+        le=24,
+        description="Horizonte de predicción en meses (6-24).",
+    ),
+    term_years: int = Query(
+        default=25,
+        ge=5,
+        le=40,
+        description="Plazo hipotecario en años para los cálculos de capacidad.",
+    ),
+    tax_config_id: uuid.UUID | None = Query(
+        None,
+        description="Si se provee, usa el salario neto de este TaxConfig en vez del histórico.",
+    ),
+    gross_annual: Decimal | None = Query(
+        None,
+        gt=0,
+        description="Bruto anual alternativo para el cálculo IRPF (sin TaxConfig guardado).",
+    ),
+    euribor_stress_levels: list[float] = Query(
+        default=[0, 1, 2, 3],
+        description="Incrementos de Euríbor sobre el nivel base para los stress tests.",
+    ),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> AIAffordabilityResponse:
+    """AI-powered mortgage affordability based on forecasted future income.
+
+    Combines ML cashflow predictions (LSTM/Prophet) with stress tests at
+    multiple Euríbor levels to answer: "How much mortgage can I afford in
+    X months, even if rates rise to Y%?"
+
+    Returns:
+    - Forecasted income percentiles (P10/P50/P90) over the prediction horizon
+    - Max affordable loan at each Euríbor stress level
+    - Comparison with current affordability (last 3 months of actual income)
+    """
+    return await mortgage_service.get_ai_affordability(
+        db=db,
+        user_id=current_user.id,
+        months_ahead=months_ahead,
+        term_years=term_years,
+        tax_config_id=tax_config_id,
+        gross_annual=gross_annual,
+        euribor_stress_levels=[Decimal(str(lvl)) for lvl in euribor_stress_levels],
+    )
 
 
 # ── Saved simulations CRUD ────────────────────────────────────────────────────
