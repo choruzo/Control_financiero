@@ -478,6 +478,42 @@ Control_financiero/
 │       ├── test_health.py
 │       └── test_predict.py
 │
-└── frontend/                    ← Pendiente Fase 5
-    └── (por implementar)
+└── frontend/                    ← Fase 5.1 implementada
+    ├── Dockerfile               ← node:20-alpine, CMD npm run dev (HMR via volume)
+    ├── package.json             ← SvelteKit 2.12.1, Skeleton UI v2, Tailwind 3, Vitest
+    ├── svelte.config.js         ← adapter-node
+    ├── vite.config.ts           ← proxy /api→backend:8000, Vitest/jsdom config
+    ├── tailwind.config.ts       ← Skeleton plugin, tema wintry, darkMode: 'class'
+    ├── postcss.config.cjs
+    ├── static/
+    │   └── favicon.png
+    ├── src/
+    │   ├── app.html             ← <html class="dark"> (oscuro desde la primera carga)
+    │   ├── app.postcss          ← @tailwind base/components/utilities
+    │   ├── lib/
+    │   │   ├── types.ts         ← Token, User, AuthState (tipado del API contract)
+    │   │   ├── api/
+    │   │   │   ├── client.ts    ← apiFetch + cola de refresh (mutex isRefreshing)
+    │   │   │   ├── auth.ts      ← login (FormData OAuth2), register, getMe
+    │   │   │   └── index.ts
+    │   │   └── stores/
+    │   │       ├── auth.ts      ← authStore, isAuthenticated, currentUser
+    │   │       └── ui.ts        ← sidebarOpen, toggleSidebar
+    │   └── routes/
+    │       ├── +layout.ts       ← ssr: false global (tokens en localStorage)
+    │       ├── +layout.svelte   ← Skeleton initializeStores + computeLightSwitch
+    │       ├── login/
+    │       │   └── +page.svelte ← Tabs login/registro, redirect preservado
+    │       └── (app)/           ← Route group protegido
+    │           ├── +layout.ts   ← Auth guard: redirect /login si sin token
+    │           ├── +layout.svelte ← AppShell + sidebar responsivo + header + logout
+    │           └── dashboard/
+    │               └── +page.svelte ← Placeholder KPI cards (Fase 5.2)
+    └── tests/
+        ├── setup.ts             ← vi.mock $app/* para jsdom
+        ├── unit/
+        │   ├── api-client.test.ts   ← 11 tests: headers, refresh, mutex concurrencia
+        │   └── auth-store.test.ts   ← 7 tests: setSession, logout, loadUser
+        └── integration/
+            └── login-page.test.ts   ← 7 tests: render, errores, redirect, registro
 ```

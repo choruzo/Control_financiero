@@ -272,6 +272,27 @@ Con la **Fase 4.2** se han añadido:
 
 Los módulos `utils/` financieros (TIR, VAN) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
 
+Con la **Fase 5.1** se han añadido:
+
+- `frontend/` — Proyecto SvelteKit con TypeScript, Skeleton UI v2 + Tailwind CSS v3
+- `frontend/Dockerfile` — Imagen `node:20-alpine`; código fuente montado como volume para HMR
+- `frontend/src/lib/api/client.ts` — `apiFetch` con interceptor 401 → refresh → retry y mutex (cola `refreshQueue` evita N llamadas a `/auth/refresh` simultáneas)
+- `frontend/src/lib/api/auth.ts` — `login` (FormData OAuth2, campo `username`), `register` (JSON), `getMe`, `refreshTokens`
+- `frontend/src/lib/stores/auth.ts` — `authStore` (setSession, loadUser, logout), derivados `isAuthenticated` y `currentUser`
+- `frontend/src/lib/stores/ui.ts` — `sidebarOpen`, `toggleSidebar`
+- `frontend/src/lib/types.ts` — Interfaces TypeScript: `Token`, `User`, `UserCreate`, `AuthState`
+- `frontend/src/routes/+layout.ts` — `ssr: false` global (tokens en localStorage, no accesibles en SSR Node)
+- `frontend/src/routes/+layout.svelte` — Skeleton `initializeStores` + `computeLightSwitch` (tema oscuro persistido)
+- `frontend/src/routes/login/+page.svelte` — Página de login/registro con TabGroup, redirect preservado via `?redirect=`
+- `frontend/src/routes/(app)/+layout.ts` — Auth guard: redirige a `/login?redirect=...` si no hay token
+- `frontend/src/routes/(app)/+layout.svelte` — `AppShell` de Skeleton con sidebar responsivo (desktop fijo, mobile drawer) y header con `LightSwitch`
+- `frontend/src/routes/(app)/dashboard/+page.svelte` — Placeholder con KPI cards (implementación real en Fase 5.2)
+- `frontend/tests/` — 25 tests Vitest: 11 de api-client (headers, refresh, mutex), 7 de auth-store, 7 de login-page
+- `docker-compose.dev.yml` — Añadido servicio `frontend` (puerto 3000, volume mounts `src/` y `static/`)
+- `.env.example` — Añadidas variables `FRONTEND_PORT=3000` y `VITE_API_URL=http://localhost:8000`
+
+**Nota:** `@sveltejs/kit` está pinado a `"2.12.1"` (sin `^`) y se añade `"@sveltejs/vite-plugin-svelte": "^3.1.2"` explícitamente para mantener compatibilidad con Skeleton UI v2 (Svelte 4). Las versiones con `^` resuelven a Kit 2.55+ que requiere Svelte 5.
+
 ## Validación con tests
 
 **Todo cambio o implementación debe ir acompañado de tests.** Antes de considerar cualquier tarea completada:

@@ -165,13 +165,13 @@ updated: 2026-03-21
 ## FASE 5: Frontend - Dashboard
 **Objetivo:** Interfaz web completa con SvelteKit.
 
-### 5.1 Setup
-- [ ] Crear proyecto SvelteKit con TypeScript
-- [ ] Configurar Skeleton UI (tema oscuro por defecto)
-- [ ] Cliente API (fetch wrapper con auth, interceptors)
-- [ ] Layout principal: sidebar + header + content area
-- [ ] Ruteo y guards de autenticación
-- [ ] Página de login
+### 5.1 Setup ✅
+- [x] Crear proyecto SvelteKit con TypeScript
+- [x] Configurar Skeleton UI v2 + Tailwind CSS v3 (tema `wintry`, oscuro por defecto)
+- [x] Cliente API (fetch wrapper con auth, interceptor 401 → refresh → retry con mutex)
+- [x] Layout principal: sidebar + header + content area (AppShell de Skeleton)
+- [x] Ruteo y guards de autenticación (route group `(app)/`, `+layout.ts` con redirect)
+- [x] Página de login (tabs login/registro, redirect preservado)
 
 ### 5.2 Dashboard Principal
 - [ ] KPIs cards: balance total, ingresos/gastos del mes, tasa de ahorro

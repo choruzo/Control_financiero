@@ -1,0 +1,37 @@
+{
+  "name": "fincontrol-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite dev --host 0.0.0.0 --port 3000",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@skeletonlabs/skeleton": "^2.10.3",
+    "@skeletonlabs/tw-plugin": "^0.4.1"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-node": "^5.2.9",
+    "@sveltejs/kit": "2.12.1",
+    "@sveltejs/vite-plugin-svelte": "^3.1.2",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/svelte": "^5.2.4",
+    "@vitest/coverage-v8": "^2.1.8",
+    "autoprefixer": "^10.4.20",
+    "jsdom": "^25.0.1",
+    "postcss": "^8.4.49",
+    "svelte": "^4.2.19",
+    "svelte-check": "^4.1.1",
+    "tailwindcss": "^3.4.17",
+    "tslib": "^2.8.1",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
+  },
+  "type": "module"
+}
