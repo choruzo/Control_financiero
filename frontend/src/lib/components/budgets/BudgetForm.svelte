@@ -111,7 +111,7 @@
 		aria-modal="true"
 		aria-label={title}
 	>
-		<div class="card w-full max-w-md z-50" on:click|stopPropagation>
+		<div class="card w-full max-w-md bg-surface-800 shadow-xl z-50" on:click|stopPropagation>
 			<header class="card-header flex items-center justify-between">
 				<h3 class="h3">{title}</h3>
 				<button

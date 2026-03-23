@@ -78,7 +78,11 @@
       "mcp__chrome-devtools__take_snapshot",
       "mcp__chrome-devtools__click",
       "mcp__chrome-devtools__fill",
-      "mcp__chrome-devtools__list_network_requests"
+      "mcp__chrome-devtools__list_network_requests",
+      "Bash(docker ps:*)",
+      "Bash(docker cp:*)",
+      "Bash(docker volume:*)",
+      "mcp__chrome-devtools__get_network_request"
     ]
   }
 }

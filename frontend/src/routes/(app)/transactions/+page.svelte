@@ -61,6 +61,13 @@
 		showCsvModal = false;
 		transactionsStore.refresh();
 	}
+
+	function getPageNumbers(current: number, total: number): number[] {
+		let start = Math.max(1, current - 2);
+		const end = Math.min(total, start + 4);
+		start = Math.max(1, end - 4);
+		return Array.from({ length: Math.min(total, 5) }, (_, i) => start + i);
+	}
 </script>
 
 <div class="space-y-4">
@@ -169,20 +176,12 @@
 							type="button"
 							class="btn btn-sm variant-soft"
 							disabled={$transactionsData.page <= 1}
-							on:click={() => transactionsStore.changePage($transactionsData!.page - 1)}
+							on:click={() => transactionsStore.changePage($transactionsData.page - 1)}
 						>
 							← Anterior
 						</button>
 
-						{#each Array.from({ length: Math.min($transactionsData.pages, 5) }, (_, i) => {
-							// Mostrar páginas alrededor de la actual
-							const current = $transactionsData!.page;
-							const total = $transactionsData!.pages;
-							let start = Math.max(1, current - 2);
-							const end = Math.min(total, start + 4);
-							start = Math.max(1, end - 4);
-							return start + i;
-						}) as pageNum}
+						{#each getPageNumbers($transactionsData.page, $transactionsData.pages) as pageNum}
 							<button
 								type="button"
 								class="btn btn-sm {pageNum === $transactionsData.page
@@ -198,7 +197,7 @@
 							type="button"
 							class="btn btn-sm variant-soft"
 							disabled={$transactionsData.page >= $transactionsData.pages}
-							on:click={() => transactionsStore.changePage($transactionsData!.page + 1)}
+							on:click={() => transactionsStore.changePage($transactionsData.page + 1)}
 						>
 							Siguiente →
 						</button>

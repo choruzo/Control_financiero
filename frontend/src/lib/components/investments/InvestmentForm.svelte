@@ -137,7 +137,7 @@
 		aria-modal="true"
 		aria-label={title}
 	>
-		<div class="card w-full max-w-lg z-50 max-h-[90vh] overflow-y-auto" on:click|stopPropagation>
+		<div class="card w-full max-w-lg bg-surface-800 shadow-xl z-50 max-h-[90vh] overflow-y-auto" on:click|stopPropagation>
 			<header class="card-header flex items-center justify-between sticky top-0 bg-surface-800 z-10">
 				<h3 class="h3">{title}</h3>
 				<button

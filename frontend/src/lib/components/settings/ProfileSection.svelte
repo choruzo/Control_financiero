@@ -207,7 +207,7 @@
 	<!-- Modal formulario cuenta -->
 	{#if showAccountForm}
 		<div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-			<div class="card p-6 w-full max-w-md space-y-4">
+			<div class="card bg-surface-800 shadow-xl p-6 w-full max-w-md space-y-4">
 				<h3 class="font-semibold text-lg">
 					{editingAccount ? 'Editar cuenta' : 'Nueva cuenta'}
 				</h3>

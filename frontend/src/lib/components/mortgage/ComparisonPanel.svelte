@@ -42,6 +42,11 @@
 		scenarios = scenarios.filter((_, idx) => idx !== i);
 	}
 
+	function setRateType(scenario: ScenarioForm, value: string) {
+		scenario.rate_type = value as MortgageRateType;
+		scenarios = scenarios;
+	}
+
 	async function handleCompare() {
 		if (scenarios.length < 2) { compareError = 'Necesitas al menos 2 escenarios'; return; }
 		compareError = '';
@@ -131,7 +136,7 @@
 							<button
 								type="button"
 								class="btn btn-sm flex-1 {scenario.rate_type === rt.value ? 'variant-filled-primary' : 'variant-ghost-surface'}"
-								on:click={() => (scenario.rate_type = rt.value as MortgageRateType)}
+								on:click={() => setRateType(scenario, rt.value)}
 							>
 								{rt.label}
 							</button>
