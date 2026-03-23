@@ -202,10 +202,10 @@ updated: 2026-03-22
 - [x] Edición inline de categoría (feedback al modelo)
 - [x] Indicador visual de categorización IA vs manual
 
-### 5.4 Presupuestos
-- [ ] Vista mensual con barras de progreso por categoría
-- [ ] Formulario de creación/edición de presupuesto
-- [ ] Comparativa mes actual vs. meses anteriores
+### 5.4 Presupuestos ✅
+- [x] Vista mensual con barras de progreso por categoría
+- [x] Formulario de creación/edición de presupuesto
+- [x] Comparativa mes actual vs. meses anteriores
 
 ### 5.5 Inversiones
 - [ ] Lista de depósitos/fondos con rendimiento

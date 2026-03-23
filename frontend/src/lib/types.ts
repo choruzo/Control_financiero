@@ -77,6 +77,43 @@ export interface SavingsRateMonth {
 }
 
 // ── Budgets ───────────────────────────────────────────────────────────────────
+export interface BudgetResponse {
+	id: string;
+	user_id: string;
+	category_id: string;
+	period_year: number;
+	period_month: number;
+	limit_amount: number;
+	alert_threshold: number; // porcentaje 0-100, default 80
+	name: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface BudgetCreate {
+	category_id: string;
+	period_year: number;
+	period_month: number;
+	limit_amount: number;
+	alert_threshold?: number;
+	name?: string;
+}
+
+export interface BudgetUpdate {
+	limit_amount?: number;
+	alert_threshold?: number;
+	name?: string;
+}
+
+export interface BudgetStatusResponse {
+	budget: BudgetResponse;
+	spent_amount: number;
+	remaining_amount: number;
+	percentage_used: number;
+	is_over_limit: boolean;
+	alert_triggered: boolean;
+}
+
 export interface BudgetAlertResponse {
 	id: string;
 	budget_id: string;
@@ -84,24 +121,6 @@ export interface BudgetAlertResponse {
 	spent_amount: number;
 	percentage: number;
 	is_read: boolean;
-}
-
-export interface BudgetDetail {
-	id: string;
-	category_id: string | null;
-	limit_amount: number;
-	alert_threshold: number;
-	period_year: number;
-	period_month: number;
-}
-
-export interface BudgetStatusItem {
-	budget: BudgetDetail;
-	spent_amount: number;
-	remaining_amount: number;
-	percentage_used: number;
-	is_over_limit: boolean;
-	alert_triggered: boolean;
 }
 
 // ── Transactions ──────────────────────────────────────────────────────────────

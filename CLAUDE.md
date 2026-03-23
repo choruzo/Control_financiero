@@ -331,6 +331,21 @@ Con la **Fase 5.3** se han añadido:
 - `frontend/tests/unit/transaction-row.test.ts` — 8 tests del componente (badges ML, colores, eventos)
 - `docker-compose.dev.yml` — añadido volume mount `./frontend/tests:/app/tests`
 
+Con la **Fase 5.4** se han añadido:
+
+- `frontend/src/lib/types.ts` — Reemplazados `BudgetDetail`/`BudgetStatusItem` por `BudgetResponse`, `BudgetCreate`, `BudgetUpdate`, `BudgetStatusResponse` completos
+- `frontend/src/lib/api/budgets.ts` — 7 funciones: `getBudgets`, `createBudget`, `updateBudget`, `deleteBudget`, `getBudgetStatuses`, `getBudgetAlerts`, `markBudgetAlertRead`
+- `frontend/src/lib/api/index.ts` — re-exporta `budgetsApi`
+- `frontend/src/lib/stores/budgets.ts` — `budgetsStore`: carga statuses del mes + 2 meses anteriores en paralelo (Promise.allSettled), caché 60s, métodos `createBudget`/`updateBudget`/`deleteBudget`; derivados `budgetsData`, `budgetsHistory`, `budgetsCategories`, `budgetsLoading`, `budgetsError`, `budgetsPeriod`
+- `frontend/src/lib/components/budgets/BudgetCard.svelte` — Card con progress bar semáforo (verde/naranja/rojo), badges "🚨 Superado"/"⚠ Alerta", confirmación inline de borrado, skeleton loading
+- `frontend/src/lib/components/budgets/BudgetForm.svelte` — Modal crear/editar: select de categoría (filtra ya usadas), límite, umbral (range 0-100), nombre opcional; categoría deshabilitada en edición
+- `frontend/src/lib/components/budgets/BudgetHistoryChart.svelte` — Gráfico ECharts barras agrupadas (3 series: mes-2, mes-1, actual) con importación dinámica y ResizeObserver
+- `frontend/src/routes/(app)/budgets/+page.ts` — Stub load function
+- `frontend/src/routes/(app)/budgets/+page.svelte` — Página completa: navegación mes anterior/siguiente, 3 KPIs (total presupuestado, gastado, % medio), grid de BudgetCards, estado vacío, gráfico comparativo, modal BudgetForm
+- `frontend/tests/unit/budgets-api.test.ts` — 8 tests de las funciones API
+- `frontend/tests/unit/budgets-store.test.ts` — 8 tests del store (caché, historial, degradación parcial, CRUD)
+- `frontend/tests/unit/budget-card.test.ts` — 6 tests del componente (badges, porcentaje, evento edit)
+
 ## Validación con tests
 
 **Todo cambio o implementación debe ir acompañado de tests.** Antes de considerar cualquier tarea completada:
