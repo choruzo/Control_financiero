@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "@skeletonlabs/skeleton": "^2.10.3",
-    "@skeletonlabs/tw-plugin": "^0.4.1"
+    "@skeletonlabs/tw-plugin": "^0.4.1",
+    "echarts": "^6.0.0"
   },
   "devDependencies": {
     "@sveltejs/adapter-node": "^5.2.9",

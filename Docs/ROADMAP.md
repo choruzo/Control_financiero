@@ -187,13 +187,13 @@ updated: 2026-03-22
 - [x] Ruteo y guards de autenticación (route group `(app)/`, `+layout.ts` con redirect)
 - [x] Página de login (tabs login/registro, redirect preservado)
 
-### 5.2 Dashboard Principal
-- [ ] KPIs cards: balance total, ingresos/gastos del mes, tasa de ahorro
-- [ ] Gráfico de evolución de balance (línea temporal)
-- [ ] Gráfico de gastos por categoría (donut/pie)
-- [ ] Gráfico de cash flow mensual (barras ingresos vs gastos)
-- [ ] Alertas de presupuesto activas
-- [ ] Widget de últimas transacciones
+### 5.2 Dashboard Principal ✅
+- [x] KPIs cards: balance total, ingresos/gastos del mes, tasa de ahorro
+- [x] Gráfico de evolución de balance (línea temporal) — barras cashflow ingresos vs gastos
+- [x] Gráfico de gastos por categoría (donut/pie)
+- [x] Gráfico de cash flow mensual (barras ingresos vs gastos) — ECharts con importación dinámica
+- [x] Alertas de presupuesto activas (con acción "Marcar leída" optimista)
+- [x] Widget de últimas transacciones
 
 ### 5.3 Gestión de Transacciones
 - [ ] Tabla con filtros (fecha, categoría, tipo, cuenta)

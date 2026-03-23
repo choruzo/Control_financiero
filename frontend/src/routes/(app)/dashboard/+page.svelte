@@ -1,12 +1,29 @@
 <script lang="ts">
-	import { currentUser } from '$lib/stores/auth';
+	import { onMount } from 'svelte';
+	import { dashboardStore, dashboardData, dashboardLoading, dashboardError } from '$lib/stores/dashboard';
+	import KpiCard from '$lib/components/dashboard/KpiCard.svelte';
+	import CashflowChart from '$lib/components/dashboard/CashflowChart.svelte';
+	import ExpensesPieChart from '$lib/components/dashboard/ExpensesPieChart.svelte';
+	import BudgetAlertsWidget from '$lib/components/dashboard/BudgetAlertsWidget.svelte';
+	import RecentTransactionsWidget from '$lib/components/dashboard/RecentTransactionsWidget.svelte';
 
-	const kpiCards = [
-		{ label: 'Balance total', icon: '💰' },
-		{ label: 'Ingresos mes', icon: '📥' },
-		{ label: 'Gastos mes', icon: '📤' },
-		{ label: 'Tasa de ahorro', icon: '🏦' }
+	const now = new Date();
+	const currentYear = now.getFullYear();
+	const currentMonth = now.getMonth() + 1;
+
+	const monthNames = [
+		'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+		'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 	];
+	$: monthLabel = `${monthNames[currentMonth - 1]} ${currentYear}`;
+
+	onMount(() => {
+		dashboardStore.load(currentYear, currentMonth);
+	});
+
+	async function handleMarkRead(event: CustomEvent<string>) {
+		await dashboardStore.markAlertRead(event.detail);
+	}
 </script>
 
 <svelte:head>
@@ -14,40 +31,83 @@
 </svelte:head>
 
 <div class="space-y-6">
-	<header>
-		<h1 class="h2 font-bold">Dashboard</h1>
-		<p class="text-surface-400">
-			Bienvenido, <span class="text-primary-400">{$currentUser?.email ?? 'usuario'}</span>
-		</p>
+	<!-- Cabecera -->
+	<header class="flex items-center justify-between">
+		<div>
+			<h1 class="h2 font-bold">Dashboard</h1>
+			<p class="text-surface-400 text-sm">{monthLabel}</p>
+		</div>
+		{#if !$dashboardLoading && $dashboardData}
+			<button
+				class="btn btn-sm variant-ghost-surface"
+				on:click={() => dashboardStore.refresh(currentYear, currentMonth)}
+			>
+				↻ Actualizar
+			</button>
+		{/if}
 	</header>
 
-	<!-- KPI Cards (placeholder hasta Fase 5.2) -->
+	<!-- Mensaje de error crítico -->
+	{#if $dashboardError}
+		<aside class="card p-4 variant-filled-error" role="alert">
+			<p class="text-sm font-medium">⚠ {$dashboardError}</p>
+		</aside>
+	{/if}
+
+	<!-- KPI Cards -->
 	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-		{#each kpiCards as card}
-			<div class="card p-4 bg-surface-700 space-y-2">
-				<div class="flex items-center justify-between">
-					<p class="text-surface-400 text-sm">{card.label}</p>
-					<span class="text-xl">{card.icon}</span>
-				</div>
-				<p class="text-2xl font-bold text-primary-400">—</p>
-				<p class="text-surface-500 text-xs">Disponible en Fase 5.2</p>
-			</div>
-		{/each}
+		<KpiCard
+			label="Balance total"
+			icon="💰"
+			value={$dashboardData?.overview.total_balance ?? null}
+			formatAs="currency"
+			loading={$dashboardLoading}
+		/>
+		<KpiCard
+			label="Ingresos del mes"
+			icon="📥"
+			value={$dashboardData?.overview.total_income ?? null}
+			formatAs="currency"
+			loading={$dashboardLoading}
+		/>
+		<KpiCard
+			label="Gastos del mes"
+			icon="📤"
+			value={$dashboardData?.overview.total_expenses ?? null}
+			formatAs="currency"
+			loading={$dashboardLoading}
+		/>
+		<KpiCard
+			label="Tasa de ahorro"
+			icon="🏦"
+			value={$dashboardData?.overview.savings_rate ?? null}
+			formatAs="percent"
+			loading={$dashboardLoading}
+		/>
 	</div>
 
-	<!-- Área de gráficos (placeholder) -->
+	<!-- Gráficos -->
 	<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-		<div class="card p-6 bg-surface-700 h-48 flex items-center justify-center">
-			<p class="text-surface-500 text-sm text-center">
-				Gráfico de cash flow mensual<br />
-				<span class="text-xs">(Fase 5.2)</span>
-			</p>
-		</div>
-		<div class="card p-6 bg-surface-700 h-48 flex items-center justify-center">
-			<p class="text-surface-500 text-sm text-center">
-				Gastos por categoría<br />
-				<span class="text-xs">(Fase 5.2)</span>
-			</p>
-		</div>
+		<CashflowChart
+			data={$dashboardData?.cashflow ?? []}
+			loading={$dashboardLoading}
+		/>
+		<ExpensesPieChart
+			data={$dashboardData?.expensesByCategory ?? []}
+			loading={$dashboardLoading}
+		/>
+	</div>
+
+	<!-- Widgets inferiores -->
+	<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+		<BudgetAlertsWidget
+			alerts={$dashboardData?.budgetAlerts ?? []}
+			loading={$dashboardLoading}
+			on:markRead={handleMarkRead}
+		/>
+		<RecentTransactionsWidget
+			transactions={$dashboardData?.recentTransactions ?? []}
+			loading={$dashboardLoading}
+		/>
 	</div>
 </div>

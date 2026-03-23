@@ -293,6 +293,25 @@ Con la **Fase 5.1** se han añadido:
 
 **Nota:** `@sveltejs/kit` está pinado a `"2.12.1"` (sin `^`) y se añade `"@sveltejs/vite-plugin-svelte": "^3.1.2"` explícitamente para mantener compatibilidad con Skeleton UI v2 (Svelte 4). Las versiones con `^` resuelven a Kit 2.55+ que requiere Svelte 5.
 
+Con la **Fase 5.2** se han añadido:
+
+- `frontend/src/lib/types.ts` — Extendido con interfaces de dominio: `OverviewData`, `CashflowMonth`, `CategoryExpense`, `BudgetAlertResponse`, `TransactionItem`, `PaginatedTransactions`, `DashboardData`
+- `frontend/src/lib/api/analytics.ts` — 6 funciones de API: `getOverview`, `getCashflow`, `getExpensesByCategory`, `getBudgetAlerts`, `markAlertRead`, `getRecentTransactions`
+- `frontend/src/lib/utils/format.ts` — Helpers de formateo: `formatCurrency` (Intl.NumberFormat es-ES EUR), `formatPercent`, `formatMonth`
+- `frontend/src/lib/stores/dashboard.ts` — `dashboardStore` con `load()` (Promise.allSettled, cache 60s, degradación parcial), `markAlertRead()` (optimista), `refresh()`; derivados `dashboardData`, `dashboardLoading`, `dashboardError`
+- `frontend/src/lib/components/dashboard/KpiCard.svelte` — Card KPI con skeleton animado, formateo por tipo y tendencia
+- `frontend/src/lib/components/dashboard/CashflowChart.svelte` — Gráfico de barras agrupadas ECharts (ingresos/gastos) con importación dinámica y ResizeObserver
+- `frontend/src/lib/components/dashboard/ExpensesPieChart.svelte` — Donut ECharts de gastos por categoría con leyenda y tooltip
+- `frontend/src/lib/components/dashboard/BudgetAlertsWidget.svelte` — Lista de alertas activas con badges y botón "Marcar leída" vía evento Svelte
+- `frontend/src/lib/components/dashboard/RecentTransactionsWidget.svelte` — Lista de últimas transacciones con formateo por tipo
+- `frontend/src/routes/(app)/dashboard/+page.svelte` — Dashboard completo con grid responsivo (4 KPIs + 2 gráficos + 2 widgets)
+- `frontend/src/routes/(app)/dashboard/+page.ts` — Stub de load function (carga real ocurre en onMount via store)
+- `frontend/tests/unit/analytics-api.test.ts` — 8 tests de las funciones de API
+- `frontend/tests/unit/dashboard-store.test.ts` — 8 tests del store (carga completa, fallos parciales, cache, markAlertRead)
+- `frontend/tests/unit/kpi-card.test.ts` — 6 tests del componente KpiCard
+- `frontend/tests/unit/format.test.ts` — 9 tests de los helpers de formateo
+- `echarts` — Nueva dependencia npm para gráficos (importación dinámica en onMount para evitar SSR issues)
+
 ## Validación con tests
 
 **Todo cambio o implementación debe ir acompañado de tests.** Antes de considerar cualquier tarea completada:
