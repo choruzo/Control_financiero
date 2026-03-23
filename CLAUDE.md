@@ -361,6 +361,21 @@ Con la **Fase 5.5** se han añadido:
 - `frontend/tests/unit/investments-store.test.ts` — 8 tests del store (caché, forceRefresh, CRUD, degradación parcial)
 - `frontend/tests/unit/investment-card.test.ts` — 6 tests del componente (badges, skeleton, eventos edit/delete)
 
+Con la **Fase 5.6** se han añadido:
+
+- `frontend/src/lib/types.ts` — Añadidos 13 tipos de hipoteca: `MortgageRateType`, `MortgagePropertyType`, `MortgageReviewFrequency`, `AmortizationRow`, `ClosingCosts`, `MortgageSimulateRequest`, `MortgageSimulationResult`, `ScenarioParams`, `MortgageCompareRequest/Response`, `MortgageScenarioSummary`, `MaxLoanOption`, `AffordabilityResponse`, `MortgageSaveRequest`, `MortgageSimulationResponse`, `StressTestResult`, `AIAffordabilityResponse`
+- `frontend/src/lib/api/mortgage.ts` — 8 funciones: `simulateMortgage`, `compareMortgages`, `getAffordability`, `getAIAffordability`, `getMortgageSimulations`, `getMortgageSimulation`, `saveMortgageSimulation`, `deleteMortgageSimulation`
+- `frontend/src/lib/api/index.ts` — re-exporta `mortgageApi`
+- `frontend/src/lib/stores/mortgage.ts` — `mortgageStore`: estado con `simulations`, `currentResult`, `comparisonResult`, `affordabilityData`, caché 60s, métodos: `load`, `simulate`, `compare`, `loadAffordability`, `saveSimulation`, `deleteSimulation` (optimistic), `clearResult`; derivados: `mortgageSimulations`, `mortgageCurrentResult`, `mortgageComparison`, `mortgageAffordability`, `mortgageLoading`, `mortgageCalculating`, `mortgageError`
+- `frontend/src/lib/components/mortgage/MortgageSimulatorForm.svelte` — Formulario completo: precio/entrada/LTV, tipo hipoteca (fijo/variable/mixto) con pills reactivos, slider de plazo 5-40 años, Euríbor + diferencial, gastos de cierre, KPIs inline tras calcular, modal de guardado
+- `frontend/src/lib/components/mortgage/AmortizationChart.svelte` — ECharts mixto (barras capital+interés apiladas + línea saldo pendiente), vista tabla alternativa con filas completas, desglose gastos de cierre en `<details>`
+- `frontend/src/lib/components/mortgage/ComparisonPanel.svelte` — Hasta 3 escenarios configurables, tabla comparativa con ahorro vs primer escenario, gráfico barras ECharts
+- `frontend/src/lib/components/mortgage/AffordabilityPanel.svelte` — 3 KPIs (ingreso neto, cuota máx 35%, préstamo recomendado) + tabla de 6 opciones predefinidas
+- `frontend/src/routes/(app)/mortgage/+page.ts` — `ssr: false`
+- `frontend/src/routes/(app)/mortgage/+page.svelte` — Página con `TabGroup` de 4 tabs: Simulador | Comparador | Capacidad | Guardadas (con badge contador); grid de simulaciones guardadas con acciones Cargar/Eliminar
+- `frontend/tests/unit/mortgage-api.test.ts` — 8 tests de API (POST simulate/compare, GET affordability con y sin taxConfigId, CRUD simulaciones, error DELETE)
+- `frontend/tests/unit/mortgage-store.test.ts` — 8 tests del store (estado inicial, load, caché TTL, simulate, compare, affordability, save, delete optimistic)
+
 ## Validación con tests
 
 **Todo cambio o implementación debe ir acompañado de tests.** Antes de considerar cualquier tarea completada:

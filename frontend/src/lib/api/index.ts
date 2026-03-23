@@ -6,3 +6,4 @@ export * as categoriesApi from './categories';
 export * as transactionsApi from './transactions';
 export * as budgetsApi from './budgets';
 export * as investmentsApi from './investments';
+export * as mortgageApi from './mortgage';

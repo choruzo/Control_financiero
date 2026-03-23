@@ -304,6 +304,153 @@ export interface InvestmentSummaryResponse {
 	by_type: Record<string, number>;
 }
 
+// ── Mortgage ─────────────────────────────────────────────────────────────────
+export type MortgageRateType = 'fixed' | 'variable' | 'mixed';
+export type MortgagePropertyType = 'new' | 'second_hand';
+export type MortgageReviewFrequency = 'annual' | 'semiannual';
+
+export interface AmortizationRow {
+	month: number;
+	payment: number;
+	principal: number;
+	interest: number;
+	balance: number;
+	applied_rate: number;
+}
+
+export interface ClosingCosts {
+	notary: number;
+	registry: number;
+	tax: number;
+	gestor: number;
+	appraisal: number;
+	total: number;
+}
+
+export interface MortgageSimulateRequest {
+	property_price: number;
+	down_payment: number;
+	rate_type: MortgageRateType;
+	term_years: number;
+	interest_rate?: number;
+	euribor_rate?: number;
+	spread?: number;
+	fixed_years?: number;
+	review_frequency?: MortgageReviewFrequency;
+	include_costs?: boolean;
+	property_type?: MortgagePropertyType;
+	region_tax_rate?: number;
+}
+
+export interface MortgageSimulationResult {
+	loan_amount: number;
+	rate_type: string;
+	term_years: number;
+	initial_monthly_payment: number;
+	total_amount_paid: number;
+	total_interest: number;
+	effective_annual_rate: number;
+	schedule: AmortizationRow[];
+	closing_costs: ClosingCosts | null;
+}
+
+export interface ScenarioParams {
+	name: string;
+	rate_type: MortgageRateType;
+	interest_rate?: number;
+	euribor_rate?: number;
+	spread?: number;
+	fixed_years?: number;
+	review_frequency?: MortgageReviewFrequency;
+}
+
+export interface MortgageCompareRequest {
+	property_price: number;
+	down_payment: number;
+	term_years: number;
+	scenarios: ScenarioParams[];
+}
+
+export interface MortgageScenarioSummary {
+	name: string;
+	rate_type: string;
+	initial_monthly_payment: number;
+	total_amount_paid: number;
+	total_interest: number;
+	savings_vs_first: number | null;
+}
+
+export interface MortgageCompareResponse {
+	loan_amount: number;
+	term_years: number;
+	scenarios: MortgageScenarioSummary[];
+}
+
+export interface MaxLoanOption {
+	description: string;
+	rate_type: string;
+	interest_rate: number;
+	term_years: number;
+	max_loan: number;
+	monthly_payment: number;
+}
+
+export interface AffordabilityResponse {
+	monthly_net_income: number;
+	max_monthly_payment: number;
+	recommended_max_loan: number;
+	options: MaxLoanOption[];
+}
+
+export interface MortgageSaveRequest extends MortgageSimulateRequest {
+	name: string;
+}
+
+export interface MortgageSimulationResponse {
+	id: string;
+	name: string;
+	property_price: number;
+	down_payment: number;
+	loan_amount: number;
+	rate_type: string;
+	term_years: number;
+	interest_rate: number | null;
+	euribor_rate: number | null;
+	spread: number | null;
+	fixed_years: number | null;
+	review_frequency: string | null;
+	property_type: string;
+	region_tax_rate: number | null;
+	initial_monthly_payment: number;
+	total_amount_paid: number;
+	total_interest: number;
+	created_at: string;
+}
+
+export interface StressTestResult {
+	euribor_rate: number;
+	euribor_label: string;
+	max_loan_p10: number;
+	max_loan_p50: number;
+	max_loan_p90: number;
+	monthly_payment_p50: number;
+	is_affordable: boolean;
+}
+
+export interface AIAffordabilityResponse {
+	forecast_monthly_income_p10: number;
+	forecast_monthly_income_p50: number;
+	forecast_monthly_income_p90: number;
+	forecast_max_monthly_payment: number;
+	forecast_recommended_max_loan: number;
+	current_based: AffordabilityResponse;
+	stress_tests: StressTestResult[];
+	ml_available: boolean;
+	historical_months_used: number;
+	months_ahead_used: number;
+	model_used: string;
+}
+
 // ── Dashboard agregado ────────────────────────────────────────────────────────
 export interface DashboardData {
 	overview: OverviewData;

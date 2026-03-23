@@ -212,12 +212,13 @@ updated: 2026-03-22
 - [x] Timeline de vencimientos
 - [x] Resumen de rendimiento total
 
-### 5.6 Simulador Hipotecario
-- [ ] Formulario interactivo (precio, entrada, tipo, plazo)
-- [ ] Tabla de amortización con gráfico
-- [ ] Comparador visual fijo vs variable vs mixto
-- [ ] Slider de Euríbor para ver impacto en tiempo real
-- [ ] Capacidad máxima de hipoteca basada en tus datos reales
+### 5.6 Simulador Hipotecario ✅
+- [x] Formulario interactivo (precio, entrada, tipo, plazo)
+- [x] Tabla de amortización con gráfico (ECharts barras capital/interés + línea saldo)
+- [x] Comparador visual fijo vs variable vs mixto (hasta 3 escenarios)
+- [x] Slider de Euríbor para ver impacto en tiempo real
+- [x] Capacidad máxima de hipoteca basada en tus datos reales
+- [x] CRUD de simulaciones guardadas
 
 ### 5.7 Predicciones y Escenarios
 - [ ] Gráfico de predicción de cashflow (con bandas de confianza)
