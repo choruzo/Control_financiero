@@ -226,12 +226,12 @@ updated: 2026-03-22
 - [x] Resultados del escenario vs. situación actual
 - [x] Estado y métricas de los modelos ML
 
-### 5.8 Configuración
-- [ ] Perfil de usuario
-- [ ] Gestión de categorías
-- [ ] Configuración fiscal (tramos IRPF)
-- [ ] Tema claro/oscuro
-- [ ] Exportación de datos
+### 5.8 Configuración ✅
+- [x] Perfil de usuario
+- [x] Gestión de categorías
+- [x] Configuración fiscal (tramos IRPF)
+- [x] Tema claro/oscuro
+- [x] Exportación de datos
 
 **Entregable:** Aplicación web completa con todas las vistas y funcionalidades integradas.
 

@@ -146,6 +146,25 @@ export interface PaginatedTransactions {
 }
 
 // ── Accounts ──────────────────────────────────────────────────────────────────
+export type AccountType = 'checking' | 'savings' | 'investment' | 'credit';
+
+export interface AccountCreate {
+	name: string;
+	bank: string;
+	account_type: AccountType;
+	currency?: string;
+	balance: number;
+}
+
+export interface AccountUpdate {
+	name?: string;
+	bank?: string;
+	account_type?: AccountType;
+	currency?: string;
+	balance?: number;
+	is_active?: boolean;
+}
+
 export interface AccountResponse {
 	id: string;
 	user_id: string;
@@ -537,6 +556,68 @@ export interface MLModelStatus {
 	feedback_count: number;
 	retrain_in_progress: boolean;
 	ml_available: boolean;
+}
+
+// ── Category CRUD ─────────────────────────────────────────────────────────────
+export interface CategoryCreate {
+	name: string;
+	parent_id?: string;
+	color?: string;
+	icon?: string;
+}
+
+export interface CategoryUpdate {
+	name?: string;
+	parent_id?: string;
+	color?: string;
+	icon?: string;
+}
+
+// ── Tax ───────────────────────────────────────────────────────────────────────
+export interface TaxBracketResponse {
+	id: string;
+	tax_year: number;
+	bracket_type: 'general' | 'savings';
+	min_amount: number;
+	max_amount: number | null;
+	rate: number;
+}
+
+export interface TaxConfigCreate {
+	tax_year: number;
+	gross_annual_salary: number;
+}
+
+export interface TaxConfigUpdate {
+	gross_annual_salary: number;
+}
+
+export interface TaxConfigResponse {
+	id: string;
+	tax_year: number;
+	gross_annual_salary: number;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface BracketBreakdown {
+	rate: number;
+	taxable_in_bracket: number;
+	tax_in_bracket: number;
+}
+
+export interface TaxCalculationResponse {
+	tax_year: number;
+	gross_annual: number;
+	ss_annual: number;
+	ss_rate: number;
+	work_expenses_deduction: number;
+	taxable_base: number;
+	irpf_annual: number;
+	effective_rate: number;
+	net_annual: number;
+	net_monthly: number;
+	bracket_breakdown: BracketBreakdown[];
 }
 
 // ── Dashboard agregado ────────────────────────────────────────────────────────

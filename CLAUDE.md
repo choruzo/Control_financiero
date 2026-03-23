@@ -393,6 +393,24 @@ Con la **Fase 5.7** se han añadido:
 - `frontend/tests/unit/predictions-store.test.ts` — 8 tests (estado inicial, load paralelo, caché TTL, analyzeScenario, clearScenario, degradación parcial, error total, propagación error)
 - `frontend/tests/unit/scenario-form.test.ts` — 6 tests (valores por defecto, loading state, add/remove gastos, evento submit con variaciones)
 
+Con la **Fase 5.8** se han añadido:
+
+- `frontend/src/lib/types.ts` — Añadidos: `AccountType`, `AccountCreate`, `AccountUpdate`, `CategoryCreate`, `CategoryUpdate`, `TaxBracketResponse`, `TaxConfigCreate`, `TaxConfigUpdate`, `TaxConfigResponse`, `BracketBreakdown`, `TaxCalculationResponse`
+- `frontend/src/lib/api/categories.ts` — Ampliado con `createCategory`, `updateCategory`, `deleteCategory`
+- `frontend/src/lib/api/accounts.ts` — Ampliado con `createAccount`, `updateAccount`, `deleteAccount`
+- `frontend/src/lib/api/tax.ts` — 6 funciones: `getTaxBrackets`, `getTaxConfigs`, `createTaxConfig`, `updateTaxConfig`, `deleteTaxConfig`, `getTaxCalculation`
+- `frontend/src/lib/api/index.ts` — re-exporta `taxApi`
+- `frontend/src/lib/stores/settings.ts` — `settingsStore`: carga categorías + taxConfigs + taxBrackets en paralelo (Promise.allSettled), caché 60s, CRUD para categorías y taxConfigs, optimistic delete; derivados: `settingsCategories`, `settingsCustomCategories`, `settingsSystemCategories`, `settingsTaxConfigs`, `settingsTaxBrackets`, `settingsLoading`, `settingsError`
+- `frontend/src/lib/components/settings/ProfileSection.svelte` — Info del usuario (email, fecha registro) + gestión completa de cuentas bancarias (CRUD inline con formulario modal)
+- `frontend/src/lib/components/settings/CategoryRow.svelte` — Fila con badge "Sistema" para categorías del sistema (read-only) y botones editar/eliminar para categorías personalizadas
+- `frontend/src/lib/components/settings/CategoryForm.svelte` — Modal crear/editar: nombre, color picker hex, emoji/icono, categoría padre opcional
+- `frontend/src/lib/components/settings/TaxConfigCard.svelte` — Card por año fiscal: sueldo bruto, cálculo neto mensual lazy (bajo demanda), desglose por tramos IRPF
+- `frontend/src/lib/components/settings/TaxConfigForm.svelte` — Modal: año fiscal (select 2020-2030, filtra años ya configurados), sueldo bruto anual
+- `frontend/src/routes/(app)/settings/+page.ts` — `ssr: false`
+- `frontend/src/routes/(app)/settings/+page.svelte` — Página con `TabGroup` de 4 tabs: Perfil (ProfileSection) | Categorías (lista filtrable + CRUD) | Fiscal (TaxConfigCards + tabla de tramos) | Preferencias (LightSwitch + exportación CSV cliente)
+- `frontend/tests/unit/tax-api.test.ts` — 7 tests de API (sin filtros, con query params, create, update, delete, calculation con bracket_breakdown)
+- `frontend/tests/unit/settings-store.test.ts` — 8 tests del store (estado inicial, carga paralela, caché TTL, degradación parcial, createCategory, deleteCategory optimistic, createTaxConfig, deleteTaxConfig optimistic, filtros custom/sistema)
+
 ## Validación con tests
 
 **Todo cambio o implementación debe ir acompañado de tests.** Antes de considerar cualquier tarea completada:

@@ -8,3 +8,4 @@ export * as budgetsApi from './budgets';
 export * as investmentsApi from './investments';
 export * as mortgageApi from './mortgage';
 export * as predictionsApi from './predictions';
+export * as taxApi from './tax';
