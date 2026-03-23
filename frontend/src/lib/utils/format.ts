@@ -12,7 +12,9 @@ export function formatCurrency(amount: number): string {
 }
 
 export function formatPercent(value: number, decimals = 1): string {
-	return `${value.toFixed(decimals).replace('.', ',')}%`;
+	const num = Number(value);
+	if (isNaN(num)) return '—';
+	return `${num.toFixed(decimals).replace('.', ',')}%`;
 }
 
 /** Devuelve "Ene 26", "Feb 25", etc. */

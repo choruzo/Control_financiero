@@ -12,12 +12,12 @@
 		if (v === null || v === undefined) return '—';
 		if (formatAs === 'currency') return formatCurrency(v);
 		if (formatAs === 'percent') return formatPercent(v);
-		return v.toLocaleString('es-ES');
+		return Number(v).toLocaleString('es-ES');
 	}
 
-	$: trendPositive = trend !== null && trend > 0;
-	$: trendNegative = trend !== null && trend < 0;
-	$: trendLabel = trend !== null ? `${trend > 0 ? '+' : ''}${trend.toFixed(1)}%` : null;
+	$: trendPositive = trend !== null && Number(trend) > 0;
+	$: trendNegative = trend !== null && Number(trend) < 0;
+	$: trendLabel = trend !== null ? `${Number(trend) > 0 ? '+' : ''}${Number(trend).toFixed(1)}%` : null;
 </script>
 
 <div class="card p-4 bg-surface-700 space-y-2">

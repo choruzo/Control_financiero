@@ -300,11 +300,11 @@
 										</tr>
 									</thead>
 									<tbody>
-										{#each filteredBrackets.sort((a, b) => a.min_amount - b.min_amount) as bracket}
+										{#each filteredBrackets.sort((a, b) => Number(a.min_amount) - Number(b.min_amount)) as bracket}
 											<tr>
-												<td class="font-mono">{bracket.min_amount.toLocaleString('es-ES')}</td>
-												<td class="font-mono">{bracket.max_amount !== null ? bracket.max_amount.toLocaleString('es-ES') : '∞'}</td>
-												<td class="font-mono font-semibold">{(bracket.rate * 100).toFixed(0)}%</td>
+												<td class="font-mono">{Number(bracket.min_amount).toLocaleString('es-ES')}</td>
+												<td class="font-mono">{bracket.max_amount !== null ? Number(bracket.max_amount).toLocaleString('es-ES') : '∞'}</td>
+												<td class="font-mono font-semibold">{(Number(bracket.rate) * 100).toFixed(0)}%</td>
 											</tr>
 										{/each}
 									</tbody>

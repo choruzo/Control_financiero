@@ -52,7 +52,7 @@
 			{#if calculation}
 				<p class="text-sm text-success-400 mt-1">
 					Neto mensual: <span class="font-mono font-semibold">{formatCurrency(calculation.net_monthly)}</span>
-					<span class="text-surface-400 ml-1">({(calculation.effective_rate * 100).toFixed(1)}% IRPF efectivo)</span>
+					<span class="text-surface-400 ml-1">({(Number(calculation.effective_rate) * 100).toFixed(1)}% IRPF efectivo)</span>
 				</p>
 			{/if}
 		</div>
@@ -89,7 +89,7 @@
 			<div class="grid grid-cols-2 gap-2">
 				<div class="text-surface-400">Bruto anual</div>
 				<div class="font-mono text-right">{formatCurrency(calculation.gross_annual)}</div>
-				<div class="text-surface-400">Cotización SS ({(calculation.ss_rate * 100).toFixed(2)}%)</div>
+				<div class="text-surface-400">Cotización SS ({(Number(calculation.ss_rate) * 100).toFixed(2)}%)</div>
 				<div class="font-mono text-right text-error-400">−{formatCurrency(calculation.ss_annual)}</div>
 				<div class="text-surface-400">Reducción trabajo</div>
 				<div class="font-mono text-right text-success-400">−{formatCurrency(calculation.work_expenses_deduction)}</div>
@@ -109,7 +109,7 @@
 					<div class="space-y-1">
 						{#each calculation.bracket_breakdown as bracket}
 							<div class="flex justify-between text-xs">
-								<span class="text-surface-300">{(bracket.rate * 100).toFixed(0)}% sobre {formatCurrency(bracket.taxable_in_bracket)}</span>
+								<span class="text-surface-300">{(Number(bracket.rate) * 100).toFixed(0)}% sobre {formatCurrency(bracket.taxable_in_bracket)}</span>
 								<span class="font-mono text-error-400">−{formatCurrency(bracket.tax_in_bracket)}</span>
 							</div>
 						{/each}

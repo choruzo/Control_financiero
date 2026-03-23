@@ -104,7 +104,7 @@
 			<div>
 				<p class="text-surface-400 text-xs">Tasa anual</p>
 				<p class="font-semibold text-surface-100">
-					{investment.interest_rate.toFixed(2)}%
+					{Number(investment.interest_rate).toFixed(2)}%
 					<span class="text-surface-400 font-normal text-xs">
 						({investment.interest_type === 'compound'
 							? investment.compounding_frequency === 'monthly'
@@ -125,7 +125,7 @@
 				{#if statusLoading}
 					<div class="animate-pulse h-4 bg-surface-600 rounded w-20"></div>
 				{:else if status}
-					<p class="font-semibold {status.total_return >= 0 ? 'text-success-400' : 'text-error-400'}">
+					<p class="font-semibold {Number(status.total_return) >= 0 ? 'text-success-400' : 'text-error-400'}">
 						{formatCurrency(status.total_return)}
 						<span class="text-xs">({formatPercent(status.return_percentage)})</span>
 					</p>

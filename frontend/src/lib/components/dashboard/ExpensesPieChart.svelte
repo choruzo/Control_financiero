@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import { formatCurrency, formatPercent } from '$lib/utils/format';
 	import type { CategoryExpense } from '$lib/types';
 
@@ -10,19 +10,19 @@
 	let chart: { setOption: (o: object, replace?: boolean) => void; resize: () => void; dispose: () => void } | null = null;
 	let resizeObserver: ResizeObserver;
 
+	// Inicializar ECharts en cuanto chartEl esté en el DOM (puede que loading=true al montar)
+	$: if (chartEl && !chart) {
+		import('echarts').then(({ init }) => {
+			chart = init(chartEl, 'dark', { renderer: 'canvas' });
+			resizeObserver = new ResizeObserver(() => chart?.resize());
+			resizeObserver.observe(chartEl);
+			if (data.length) chart.setOption(buildOption(data), true);
+		});
+	}
+
 	$: if (chart && data) {
 		chart.setOption(buildOption(data), true);
 	}
-
-	onMount(async () => {
-		const { init } = await import('echarts');
-		chart = init(chartEl, 'dark', { renderer: 'canvas' });
-
-		resizeObserver = new ResizeObserver(() => chart?.resize());
-		resizeObserver.observe(chartEl);
-
-		if (data.length) chart.setOption(buildOption(data), true);
-	});
 
 	onDestroy(() => {
 		resizeObserver?.disconnect();

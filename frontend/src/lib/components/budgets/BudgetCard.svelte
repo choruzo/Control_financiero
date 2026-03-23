@@ -63,7 +63,7 @@
 				{/if}
 			</div>
 			<span class="text-sm font-semibold shrink-0 {status.is_over_limit ? 'text-error-400' : status.alert_triggered ? 'text-warning-400' : 'text-surface-300'}">
-				{status.percentage_used.toFixed(1)}%
+				{Number(status.percentage_used).toFixed(1)}%
 			</span>
 		</div>
 
