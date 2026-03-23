@@ -41,8 +41,8 @@ updated: 2026-03-22
 |---|---|---|---|---|
 | **Backend** | 14 | 228 | pytest + pytest-asyncio | SQLite in-memory |
 | **ML Service** | 6 | 68 | pytest + pytest-asyncio | Degraded mode |
-| **Frontend** | 3 | 25 | Vitest + jsdom | vi.mock SvelteKit |
-| **Total** | **23** | **321** | — | — |
+| **Frontend** | 10 | 83 | Vitest + jsdom | vi.mock SvelteKit |
+| **Total** | **30** | **379** | — | — |
 
 ---
 
@@ -310,13 +310,34 @@ Catálogo de categorías (10 etiquetas). Preprocessor de texto bancario (normali
 #### `test_trainer.py` — 11 tests
 Funciones puras del trainer: versionado (`get_next_version`), `build_training_examples` (base + feedback), `train_val_split`. Edge cases: versión inválida, categoría fuera de rango, descripción vacía.
 
-### 5.3 Frontend (3 archivos, 25 tests)
+### 5.3 Frontend (10 archivos, 83 tests)
 
 #### `api-client.test.ts` — 11 tests
 `apiFetch`: token management, Bearer header injection, Content-Type. **Interceptor 401:** refresh + retry + mutex (previene refresh duplicado con 2 peticiones 401 concurrentes).
 
 #### `auth-store.test.ts` — 7 tests
 Store `authStore`: `setSession`, `logout`, `loadUser`. Derivados `isAuthenticated` y `currentUser`.
+
+#### `analytics-api.test.ts` — 8 tests
+Funciones de API del dashboard: URLs construidas correctamente, query params, valor devuelto.
+
+#### `dashboard-store.test.ts` — 8 tests
+Store del dashboard: carga paralela (Promise.allSettled), degradación graceful, cache 60s, `refresh()`, `markAlertRead()` optimista.
+
+#### `format.test.ts` — 9 tests
+Helpers de formateo: `formatCurrency` (es-ES EUR), `formatPercent`, `formatMonth`.
+
+#### `kpi-card.test.ts` — 6 tests
+Componente KpiCard: render del label, formateo por tipo, skeleton loader, indicador de tendencia.
+
+#### `transactions-api.test.ts` — 9 tests
+Funciones de API de transacciones: `getTransactions` (con/sin filtros), `createTransaction`, `updateTransaction`, `deleteTransaction`, `importCsv` (dry_run true/false), `sendMlFeedback`.
+
+#### `transactions-store.test.ts` — 9 tests
+Store de transacciones: carga paralela (tx+accounts+categories), `setFilters` (reset a página 1), `changePage`, `deleteTransaction`, `updateCategory` (con y sin feedback ML), cache 60s, `refresh()`.
+
+#### `transaction-row.test.ts` — 8 tests
+Componente TransactionRow: badge "🤖 IA" (confidence > 0.92), badge "💡 Sugerida" (0.5–0.92), sin badge (manual), colores de importe (verde/rojo/gris), nombre de cuenta y categoría, descripción.
 
 #### `login-page.test.ts` — 7 tests
 Página de login: tabs login/registro, formulario, error display, redirect a `/dashboard`, validación contraseña (mismatch, longitud mínima 8).

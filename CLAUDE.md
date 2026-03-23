@@ -312,6 +312,25 @@ Con la **Fase 5.2** se han añadido:
 - `frontend/tests/unit/format.test.ts` — 9 tests de los helpers de formateo
 - `echarts` — Nueva dependencia npm para gráficos (importación dinámica en onMount para evitar SSR issues)
 
+Con la **Fase 5.3** se han añadido:
+
+- `frontend/src/lib/types.ts` — Extendido con 7 interfaces nuevas: `AccountResponse`, `CategoryResponse`, `TransactionCreate`, `TransactionUpdate`, `TransactionFilters`, `ImportResult`, `ImportRowResult`
+- `frontend/src/lib/api/accounts.ts` — `getAccounts()`: listado de cuentas del usuario
+- `frontend/src/lib/api/categories.ts` — `getCategories()`: listado de categorías (sistema + custom)
+- `frontend/src/lib/api/transactions.ts` — 6 funciones: `getTransactions` (con filtros y paginación), `createTransaction`, `updateTransaction`, `deleteTransaction`, `importCsv` (FormData, soporte dry_run), `sendMlFeedback`
+- `frontend/src/lib/api/index.ts` — re-exporta `accountsApi`, `categoriesApi`, `transactionsApi`
+- `frontend/src/lib/stores/transactions.ts` — `transactionsStore`: carga paralela (Promise.allSettled) de transacciones + cuentas + categorías, cache 60s, métodos: `setFilters` (reset página 1), `changePage`, `deleteTransaction`, `updateCategory` (PATCH + sendMlFeedback si había sugerencia ML), `addTransaction`, `editTransaction`, `refresh`; derivados: `transactionsData`, `transactionsLoading`, `transactionsError`, `transactionsAccounts`, `transactionsCategories`, `transactionsFilters`
+- `frontend/src/lib/components/transactions/TransactionFilters.svelte` — Panel de filtros (fecha inicio/fin, tipo, categoría, cuenta) con evento `on:change` y botón "Limpiar"
+- `frontend/src/lib/components/transactions/TransactionRow.svelte` — Fila de tabla: badge "🤖 IA" (confidence > 0.92), badge "💡 Sugerida" (0.5–0.92), sin badge (manual); dropdown inline de edición de categoría con feedback ML; colores de importe (verde/rojo/gris); eventos `on:delete`, `on:categoryChange`, `on:edit`
+- `frontend/src/lib/components/transactions/TransactionForm.svelte` — Modal crear/editar: sugerencia ML en blur de descripción (POST /ml/predict), badge de confianza sobre el select de categoría, soporte recurrencia, validación client-side
+- `frontend/src/lib/components/transactions/CsvImportModal.svelte` — Importación CSV en 3 pasos: selección de archivo + cuenta → preview con dry_run=true (tabla de filas con badges ✓/⚠/✕) → confirmación con dry_run=false + resumen final
+- `frontend/src/routes/(app)/transactions/+page.ts` — Stub load function
+- `frontend/src/routes/(app)/transactions/+page.svelte` — Página completa: tabla filtrable/paginada + `TransactionForm` + `CsvImportModal`
+- `frontend/tests/unit/transactions-api.test.ts` — 9 tests de las funciones API
+- `frontend/tests/unit/transactions-store.test.ts` — 9 tests del store (carga, filtros, paginación, feedback ML)
+- `frontend/tests/unit/transaction-row.test.ts` — 8 tests del componente (badges ML, colores, eventos)
+- `docker-compose.dev.yml` — añadido volume mount `./frontend/tests:/app/tests`
+
 ## Validación con tests
 
 **Todo cambio o implementación debe ir acompañado de tests.** Antes de considerar cualquier tarea completada:

@@ -195,12 +195,12 @@ updated: 2026-03-22
 - [x] Alertas de presupuesto activas (con acción "Marcar leída" optimista)
 - [x] Widget de últimas transacciones
 
-### 5.3 Gestión de Transacciones
-- [ ] Tabla con filtros (fecha, categoría, tipo, cuenta)
-- [ ] Formulario de nueva transacción (con sugerencia de categoría IA)
-- [ ] Importación CSV con preview y mapeo de columnas
-- [ ] Edición inline de categoría (feedback al modelo)
-- [ ] Indicador visual de categorización IA vs manual
+### 5.3 Gestión de Transacciones ✅
+- [x] Tabla con filtros (fecha, categoría, tipo, cuenta)
+- [x] Formulario de nueva transacción (con sugerencia de categoría IA)
+- [x] Importación CSV con preview y mapeo de columnas
+- [x] Edición inline de categoría (feedback al modelo)
+- [x] Indicador visual de categorización IA vs manual
 
 ### 5.4 Presupuestos
 - [ ] Vista mensual con barras de progreso por categoría

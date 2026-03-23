@@ -66,7 +66,19 @@
       "Bash(cmd.exe /c \"dir /s /b C:\\\\Users\\\\javie\\\\AppData\\\\Local\\\\Docker\\\\wsl\")",
       "Bash(cmd.exe /c \"dir C:\\\\Users\\\\javie\\\\AppData\\\\Local\\\\Docker\\\\wsl\")",
       "Bash(powershell.exe -Command \"Get-ChildItem 'C:\\\\Users\\\\javie\\\\AppData\\\\Local\\\\Docker\\\\wsl' -Recurse | Select-Object FullName, Length\")",
-      "Bash(python3 -m json.tool)"
+      "Bash(python3 -m json.tool)",
+      "Bash(npm test:*)",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__take_screenshot",
+      "Bash(docker exec:*)",
+      "Bash(echo \"Exit: $?\")",
+      "mcp__chrome-devtools__list_console_messages",
+      "Bash(docker restart:*)",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__fill",
+      "mcp__chrome-devtools__list_network_requests"
     ]
   }
 }

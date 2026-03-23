@@ -1,13 +1,12 @@
 <script lang="ts">
 	import '../app.postcss';
-	import { Modal, Toast, initializeStores, computeLightSwitch } from '@skeletonlabs/skeleton';
-	import { onMount } from 'svelte';
+	import { Modal, Toast, initializeStores, setInitialClassState } from '@skeletonlabs/skeleton';
 
 	// Inicializar los stores internos de Skeleton (Modal, Toast, Drawer)
 	initializeStores();
 
 	// Aplicar la preferencia de tema guardada (oscuro/claro) antes del primer render
-	onMount(() => computeLightSwitch());
+	setInitialClassState();
 </script>
 
 <!-- Portales de Skeleton: deben estar en el layout raíz -->

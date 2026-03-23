@@ -19,7 +19,7 @@ related:
   - "[[TESTING]]"
 status: activo
 created: 2026-03-22
-updated: 2026-03-22
+updated: 2026-03-23
 ---
 
 # FinControl - Frontend
@@ -36,7 +36,7 @@ updated: 2026-03-22
 
 El frontend de FinControl es una **SPA (Single Page Application)** construida con SvelteKit, TypeScript, Skeleton UI v2 y Tailwind CSS. Corre en el puerto 3000 con Hot Module Replacement (HMR) en desarrollo.
 
-**Estado actual:** Fase 5.1 completada (infraestructura, auth, layout). Fases 5.2-5.8 (vistas funcionales) pendientes.
+**Estado actual:** Fases 5.1, 5.2 y 5.3 completadas. Fases 5.4-5.8 (presupuestos, inversiones, hipoteca, predicciones, configuración) pendientes.
 
 **Decisiones arquitectónicas clave:**
 - **SSR deshabilitado** globalmente (`ssr: false`) — los tokens se almacenan en `localStorage`, inaccesible desde Node.js
@@ -77,14 +77,34 @@ frontend/
 │   ├── app.postcss               ← @tailwind directives
 │   │
 │   ├── lib/
-│   │   ├── types.ts              ← Interfaces TypeScript (Token, User, etc.)
+│   │   ├── types.ts              ← Interfaces TypeScript (Token, User, Account, Category, Transaction, Import...)
 │   │   ├── api/
 │   │   │   ├── client.ts         ← apiFetch + refresh mutex
 │   │   │   ├── auth.ts           ← login, register, getMe, refreshTokens
+│   │   │   ├── analytics.ts      ← getOverview, getCashflow, getExpensesByCategory, etc.
+│   │   │   ├── accounts.ts       ← getAccounts
+│   │   │   ├── categories.ts     ← getCategories
+│   │   │   ├── transactions.ts   ← CRUD + importCsv + sendMlFeedback
 │   │   │   └── index.ts          ← Barrel exports
-│   │   └── stores/
-│   │       ├── auth.ts           ← authStore, isAuthenticated, currentUser
-│   │       └── ui.ts             ← sidebarOpen, toggleSidebar
+│   │   ├── stores/
+│   │   │   ├── auth.ts           ← authStore, isAuthenticated, currentUser
+│   │   │   ├── dashboard.ts      ← dashboardStore (cache 60s, degradación graceful)
+│   │   │   ├── transactions.ts   ← transactionsStore (filtros, paginación, feedback ML)
+│   │   │   └── ui.ts             ← sidebarOpen, toggleSidebar
+│   │   ├── components/
+│   │   │   ├── dashboard/
+│   │   │   │   ├── KpiCard.svelte
+│   │   │   │   ├── CashflowChart.svelte        ← ECharts barras agrupadas
+│   │   │   │   ├── ExpensesPieChart.svelte      ← ECharts donut
+│   │   │   │   ├── BudgetAlertsWidget.svelte
+│   │   │   │   └── RecentTransactionsWidget.svelte
+│   │   │   └── transactions/
+│   │   │       ├── TransactionFilters.svelte    ← Panel de filtros
+│   │   │       ├── TransactionRow.svelte        ← Fila con badges ML + edición inline
+│   │   │       ├── TransactionForm.svelte       ← Modal crear/editar (sugerencia ML)
+│   │   │       └── CsvImportModal.svelte        ← Importación 3 pasos (preview→confirm)
+│   │   └── utils/
+│   │       └── format.ts         ← formatCurrency, formatPercent, formatMonth
 │   │
 │   └── routes/
 │       ├── +layout.ts            ← ssr: false (global)
@@ -94,8 +114,10 @@ frontend/
 │       └── (app)/                ← Route group protegido
 │           ├── +layout.ts        ← Auth guard
 │           ├── +layout.svelte    ← AppShell + sidebar + header
-│           └── dashboard/
-│               └── +page.svelte  ← KPI cards (placeholder)
+│           ├── dashboard/
+│           │   └── +page.svelte  ← Dashboard: KPIs + gráficos + widgets
+│           └── transactions/
+│               └── +page.svelte  ← Tabla filtrable + modales
 │
 ├── static/
 │   └── favicon.png
@@ -358,19 +380,56 @@ Página pública con tabs para login y registro:
 
 ### Dashboard (`routes/(app)/dashboard/+page.svelte`)
 
-**Estado actual: Placeholder** para Fase 5.2.
+Grid responsivo con datos reales del API:
 
-4 tarjetas KPI con datos estáticos:
-| Card | Valor | Nota |
-|------|-------|------|
-| Balance Total | — | Disponible en Fase 5.2 |
-| Ingresos del Mes | — | Disponible en Fase 5.2 |
-| Gastos del Mes | — | Disponible en Fase 5.2 |
-| Tasa de Ahorro | — | Disponible en Fase 5.2 |
+```
+┌────────────────────────────────────────────────────────────┐
+│  Balance Total │ Ingresos mes │ Gastos mes │ % Ahorro      │
+├──────────────────────────────┬─────────────────────────────┤
+│  Cash Flow Mensual (12m)     │ Gastos por Categoría (donut)│
+│  Barras agrupadas ECharts    │ ECharts con leyenda         │
+├──────────────────────────────┬─────────────────────────────┤
+│  Alertas de Presupuesto      │ Últimas Transacciones       │
+│  (máx 5, marcar como leída)  │ (últimas 10)                │
+└──────────────────────────────┴─────────────────────────────┘
+```
 
-2 áreas placeholder para gráficos:
-- Gráfico de cashflow (barras)
-- Gráfico de gastos por categoría (donut)
+**Datos:** Cargados via `dashboardStore.load()` en `onMount`. Cache 60s. Botón "↻ Actualizar".
+
+### Transacciones (`routes/(app)/transactions/+page.svelte`)
+
+Vista completa de gestión de transacciones:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ Transacciones                          [↑ Importar CSV] [+]  │
+├──────────────────────────────────────────────────────────────┤
+│ [Desde] [Hasta] [Tipo▼] [Categoría▼] [Cuenta▼] [Limpiar]    │
+├────────┬───────────────────────┬────────────┬────────┬───────┤
+│ Fecha  │ Descripción           │ Categoría  │ Importe│ Cuenta│
+│ 23 Mar │ MERCADONA SA... [🤖]  │ Alimentac. │ -45 €  │ N26   │
+│ 22 Mar │ NÓMINA EMPRESA [💡]   │ [Editar▼]  │+1.200€ │ Ing   │
+├──────────────────────────────────────────────────────────────┤
+│ Mostrando 1-50 de 234   [←] [1] [2] [3] [→]                 │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Indicadores ML en `TransactionRow`:**
+- `🤖 IA` (badge azul): `ml_confidence > 0.92` — categoría auto-asignada
+- `💡 Sugerida` (badge amarillo): `0.5 < ml_confidence ≤ 0.92` — pendiente confirmación
+- Sin badge: categorización manual
+
+**Edición inline de categoría:** Click en el nombre de categoría → dropdown `<select>` con botones ✓/✕ en la misma fila. Al confirmar, hace PATCH + envía feedback ML si había sugerencia.
+
+**`TransactionForm` (modal):**
+- Modo crear: campos vacíos, descripción en blur → sugerencia ML (`POST /ml/predict`)
+- Modo editar: pre-rellena con datos de la transacción
+- Badge "💡 Sugerida por IA (75%)" sobre el select de categoría cuando hay sugerencia ML
+
+**`CsvImportModal` (3 pasos):**
+1. Seleccionar archivo `.csv` + cuenta destino
+2. Preview con dry_run=true: tabla de filas (✓ importada / ⚠ duplicada / ✕ error)
+3. Confirmar → importación real con resumen final
 
 ---
 
@@ -449,9 +508,16 @@ vi.mock('$app/stores', () => ({
 |---------|-------|-----------|
 | `unit/api-client.test.ts` | 11 | Headers, refresh, mutex concurrencia, FormData |
 | `unit/auth-store.test.ts` | 7 | setSession, logout, loadUser, estados |
+| `unit/analytics-api.test.ts` | 8 | URLs construidas, query params, valor devuelto |
+| `unit/dashboard-store.test.ts` | 8 | Carga paralela, degradación, cache 60s, markAlertRead |
+| `unit/format.test.ts` | 9 | formatCurrency (es-ES), formatPercent, formatMonth |
+| `unit/kpi-card.test.ts` | 6 | Render, formateo por tipo, skeleton, tendencia |
+| `unit/transactions-api.test.ts` | 9 | CRUD, importCsv (dry_run), sendMlFeedback |
+| `unit/transactions-store.test.ts` | 9 | Filtros, paginación, deleteTransaction, updateCategory+ML |
+| `unit/transaction-row.test.ts` | 8 | Badges ML, colores importe, nombre cuenta/categoría |
 | `integration/login-page.test.ts` | 7 | Render, errores, redirect, registro, tabs |
 
-**Total:** 25 tests
+**Total:** 83 tests
 
 **Comando:**
 ```bash
@@ -481,33 +547,28 @@ frontend:
   ports:
     - "${FRONTEND_PORT:-3000}:3000"
   volumes:
-    - ./frontend/src:/app/src       # HMR: cambios en src se reflejan al instante
+    - ./frontend/src:/app/src        # HMR: cambios en src se reflejan al instante
     - ./frontend/static:/app/static
+    - ./frontend/tests:/app/tests    # Tests accesibles en el contenedor
   environment:
     - VITE_API_URL=http://localhost:8000
   depends_on:
     - backend
 ```
 
-**Volume mounts:** Solo `src/` y `static/` para HMR, no `node_modules/` (se instalan en la imagen).
+**Volume mounts:** `src/`, `static/` y `tests/` para HMR y ejecución de tests. `node_modules/` se instala en la imagen (no se monta).
 
 ---
 
-## 9. Pendiente (Fases 5.2 - 5.8)
+## 9. Estado de Vistas
 
-Las siguientes vistas están planificadas pero **aún no implementadas:**
-
-| Fase | Vista | Datos de API |
-|------|-------|-------------|
-| 5.2 | Dashboard con KPIs reales | [[API_REFERENCE#8. Analytics (`/analytics`)\|analytics/overview]] |
-| 5.2 | Gráfico de cashflow | [[API_REFERENCE#`GET /api/v1/analytics/cashflow`\|analytics/cashflow]] |
-| 5.2 | Gráfico gastos por categoría | [[API_REFERENCE#`GET /api/v1/analytics/expenses-by-category`\|expenses-by-category]] |
-| 5.3 | Tabla de transacciones | [[API_REFERENCE#4. Transacciones (`/transactions`)\|transactions]] |
-| 5.3 | Importación CSV | [[API_REFERENCE#`POST /api/v1/transactions/import/csv`\|import/csv]] |
-| 5.4 | Presupuestos | [[API_REFERENCE#5. Presupuestos (`/budgets`)\|budgets]] |
-| 5.5 | Inversiones | [[API_REFERENCE#6. Inversiones (`/investments`)\|investments]] |
-| 5.6 | Simulador hipotecario | [[API_REFERENCE#7. Simulador Hipotecario (`/mortgage`)\|mortgage]] |
-| 5.7 | Predicciones y escenarios | [[API_REFERENCE#11. Escenarios What-If (`/scenarios`)\|scenarios]] |
-| 5.8 | Configuración | [[API_REFERENCE#9. Fiscalidad (`/tax`)\|tax]] |
-
-**Librería de gráficos planificada:** Apache ECharts (configurada en el [[ROADMAP|roadmap]] pero aún no integrada).
+| Fase | Vista | Estado |
+|------|-------|--------|
+| 5.1 | Auth, layout, sidebar | ✅ Completada |
+| 5.2 | Dashboard (KPIs, gráficos ECharts, alertas) | ✅ Completada |
+| 5.3 | Gestión de Transacciones | ✅ Completada |
+| 5.4 | Presupuestos | ⏳ Pendiente |
+| 5.5 | Inversiones | ⏳ Pendiente |
+| 5.6 | Simulador Hipotecario | ⏳ Pendiente |
+| 5.7 | Predicciones y Escenarios | ⏳ Pendiente |
+| 5.8 | Configuración | ⏳ Pendiente |

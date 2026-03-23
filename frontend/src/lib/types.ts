@@ -126,6 +126,93 @@ export interface PaginatedTransactions {
 	pages: number;
 }
 
+// ── Accounts ──────────────────────────────────────────────────────────────────
+export interface AccountResponse {
+	id: string;
+	user_id: string;
+	name: string;
+	bank: string;
+	account_type: 'checking' | 'savings' | 'investment' | 'credit';
+	currency: string;
+	balance: number;
+	is_active: boolean;
+	created_at: string;
+	updated_at: string;
+}
+
+// ── Categories ────────────────────────────────────────────────────────────────
+export interface CategoryResponse {
+	id: string;
+	user_id: string | null;
+	parent_id: string | null;
+	name: string;
+	color: string | null;
+	icon: string | null;
+	is_system: boolean;
+	created_at: string;
+	updated_at: string;
+}
+
+// ── Transaction CRUD ──────────────────────────────────────────────────────────
+export type TransactionType = 'income' | 'expense' | 'transfer';
+export type RecurrenceRule = 'daily' | 'weekly' | 'monthly' | 'yearly';
+
+export interface TransactionCreate {
+	account_id: string;
+	category_id?: string;
+	amount: number;
+	description: string;
+	transaction_type: TransactionType;
+	date: string; // YYYY-MM-DD
+	is_recurring?: boolean;
+	recurrence_rule?: RecurrenceRule;
+	notes?: string;
+}
+
+export interface TransactionUpdate {
+	category_id?: string | null;
+	amount?: number;
+	description?: string;
+	transaction_type?: TransactionType;
+	date?: string;
+	is_recurring?: boolean;
+	recurrence_rule?: RecurrenceRule | null;
+	notes?: string;
+}
+
+export interface TransactionFilters {
+	date_from?: string;
+	date_to?: string;
+	category_id?: string;
+	account_id?: string;
+	transaction_type?: TransactionType;
+	page?: number;
+	per_page?: number;
+}
+
+// ── CSV Import ────────────────────────────────────────────────────────────────
+export type ImportRowStatus = 'imported' | 'skipped_duplicate' | 'error';
+
+export interface ImportRowResult {
+	row: number;
+	status: ImportRowStatus;
+	description?: string;
+	amount?: number;
+	date?: string;
+	transaction_id?: string;
+	error_detail?: string;
+}
+
+export interface ImportResult {
+	account_id: string;
+	dry_run: boolean;
+	total_rows: number;
+	imported: number;
+	skipped_duplicates: number;
+	errors: number;
+	rows: ImportRowResult[];
+}
+
 // ── Dashboard agregado ────────────────────────────────────────────────────────
 export interface DashboardData {
 	overview: OverviewData;
