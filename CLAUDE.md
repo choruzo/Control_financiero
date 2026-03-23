@@ -8,66 +8,42 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Comandos de desarrollo
 
-### Iniciar entorno
-
 ```bash
+# Iniciar entorno
 cp .env.example .env
 docker compose -f docker-compose.dev.yml up --build
+
+# Tests
+docker compose -f docker-compose.dev.yml exec backend pytest
+docker compose -f docker-compose.dev.yml exec backend pytest tests/test_auth.py -v
+docker compose -f docker-compose.dev.yml exec backend pytest --cov=app
+
+# Lint y formato (Ruff)
+docker compose -f docker-compose.dev.yml exec backend ruff check app/
+docker compose -f docker-compose.dev.yml exec backend ruff format app/
+docker compose -f docker-compose.dev.yml exec backend ruff check --fix app/
+
+# Sin Docker
+cd backend && python3.12 -m venv venv && source venv/bin/activate
+pip install -e ".[dev]" && ruff check app/ && pytest
+
+# Migraciones Alembic
+docker compose -f docker-compose.dev.yml exec backend alembic revision --autogenerate -m "descripcion"
+docker compose -f docker-compose.dev.yml exec backend alembic upgrade head
 ```
 
 ### Servicios disponibles
 
 - Backend API + Swagger: http://localhost:8000/docs
-- Frontend (pendiente): http://localhost:3000
-- ML Service (pendiente): http://localhost:8001/docs
-
-### Tests
-
-```bash
-# Todos los tests
-docker compose -f docker-compose.dev.yml exec backend pytest
-
-# Test específico
-docker compose -f docker-compose.dev.yml exec backend pytest tests/test_auth.py -v
-
-# Con cobertura
-docker compose -f docker-compose.dev.yml exec backend pytest --cov=app
-```
-
-### Lint y formato (Ruff)
-
-```bash
-# Verificar
-docker compose -f docker-compose.dev.yml exec backend ruff check app/
-
-# Corregir y formatear
-docker compose -f docker-compose.dev.yml exec backend ruff format app/
-docker compose -f docker-compose.dev.yml exec backend ruff check --fix app/
-```
-
-### Sin Docker (desarrollo local)
-
-```bash
-cd backend
-python3.12 -m venv venv && source venv/bin/activate
-pip install -e ".[dev]"
-ruff check app/
-pytest
-```
-
-### Migraciones Alembic
-
-```bash
-docker compose -f docker-compose.dev.yml exec backend alembic revision --autogenerate -m "descripcion"
-docker compose -f docker-compose.dev.yml exec backend alembic upgrade head
-```
+- Frontend: http://localhost:3000
+- ML Service: http://localhost:8001/docs
 
 ## Arquitectura
 
 ### Stack
 
 - **Backend:** Python 3.12, FastAPI, SQLAlchemy 2.0 (async), Alembic, Celery + Redis
-- **Frontend:** SvelteKit, TypeScript, Apache ECharts, Skeleton UI
+- **Frontend:** SvelteKit, TypeScript, Apache ECharts, Skeleton UI v2 (Svelte 4, `@sveltejs/kit` pinado a `2.12.1`)
 - **BD:** PostgreSQL 16 (principal), Redis 7 (cache + broker Celery)
 - **ML:** DistilBERT (categorización), LSTM + PyTorch (predicciones), Prophet (baseline), NumPy/SciPy (cálculos hipotecarios)
 - **Infra:** Docker Compose, Nginx
@@ -78,14 +54,12 @@ docker compose -f docker-compose.dev.yml exec backend alembic upgrade head
 main.py          # Punto de entrada FastAPI, CORS, health check GET /health
 config.py        # Settings pydantic-settings (carga .env), property database_url
 database.py      # Engine SQLAlchemy async, get_db dependency
-models/          # Modelos SQLAlchemy: User, Account, Transaction, Budget, Investment,
-                 #   MortgageSim, Category, MLModel, Scenario, TaxConfig
+models/          # User, Account, Transaction, Budget, Investment, MortgageSim, Category, MLModel, Scenario, TaxConfig
 schemas/         # Schemas Pydantic (validación entrada/salida)
-api/v1/          # Endpoints REST por dominio (auth, accounts, transactions, budgets,
-                 #   investments, mortgage, analytics, ml, tax)
+api/v1/          # Endpoints REST: auth, accounts, transactions, budgets, investments, mortgage, analytics, ml, tax, scenarios
 services/        # Lógica de negocio desacoplada de la BD
-tasks/           # Tareas Celery (reentrenamiento ML mensual, cálculos periódicos)
-utils/           # Funciones financieras: TIR, VAN, amortización, Monte Carlo
+tasks/           # Tareas Celery (reentrenamiento ML mensual, forecasting)
+utils/           # Funciones financieras: amortización, Monte Carlo, csv_parser
 ```
 
 ### Flujo de una request
@@ -100,333 +74,48 @@ Request → CORS Middleware → api/v1/{dominio}
 
 ### Estrategia ML
 
-- **Categorización (DistilBERT):** umbral >0.92 auto-asigna, >0.5 sugiere, <0.5 manual. Feedback del usuario genera reentrenamiento.
+- **Categorización (DistilBERT):** umbral >0.92 auto-asigna, >0.5 sugiere, <0.5 manual. Feedback genera reentrenamiento.
 - **Predicción cashflow (LSTM):** features: ingresos/gastos, categoría, mes, Euríbor. Reentrenamiento mensual via Celery Beat.
 - **Escenarios "what-if":** motor reglas + Monte Carlo, output en percentiles P10/P50/P90.
 
-### Estado actual del proyecto
+## Estado de implementación (fases completadas)
 
-`main.py`, `config.py`, `database.py` y `utils/logging.py` ya estaban implementados. Con la **Fase 1.2** se añadió autenticación JWT completa. Con la **Fase 1.3** se han añadido:
+- **Fase 1.2** — Autenticación JWT completa (login, register, refresh, get_me).
+- **Fase 1.3** — CRUD de cuentas, categorías (con seeder) y transacciones.
+- **Fase 1.4** — Importación CSV OpenBank con deduplicación y modo dry_run (`POST /transactions/import/csv`).
+- **Fase 2.1** — Presupuestos con alertas configurables por categoría y período (`/budgets`).
+- **Fase 2.2** — Inversiones (depósitos, fondos, acciones, bonos) con interés simple/compuesto y renovación (`/investments`).
+- **Fase 2.3** — Analytics: overview, cashflow mensual, gastos por categoría, tasa de ahorro y tendencias (`/analytics`).
+- **Fase 2.4** — Simulador hipotecario: amortización fijo/variable/mixto, TAE, gastos de cierre, comparador, capacidad de endeudamiento (`/mortgage`).
+- **Fase 2.5** — Cálculo IRPF: tramos 2025/2026, SS, mínimo personal, reducción trabajo; integrado con hipoteca (`/tax`).
+- **Fase 3.1** — Microservicio ML independiente en puerto 8001 con endpoints stub y degradación graceful.
+- **Fase 3.2** — DistilBERT real: fine-tuning sobre dataset sintético (~800 ejemplos), inferencia con thresholds, integración en `POST /transactions`.
+- **Fase 3.3** — Reentrenamiento incremental del categorizador: feedback Redis → trainer → hot-reload; Celery beat semanal.
+- **Fase 4.1** — Forecaster LSTM bidireccional (MC Dropout, P10/P50/P90) con Prophet fallback; endpoint `GET /analytics/forecast`.
+- **Fase 4.2** — Motor de escenarios what-if: variaciones de sueldo, Euríbor y gastos recurrentes con Monte Carlo (`POST /scenarios/analyze`).
+- **Fase 4.3** — Capacidad hipotecaria con IA: forecast ML + stress tests de Euríbor + IRPF integrado (`GET /mortgage/ai-affordability`).
+- **Fase 5.1** — Frontend SvelteKit: autenticación, auth guard, layout AppShell con sidebar responsivo.
+- **Fase 5.2** — Dashboard: 4 KPIs, gráfico cashflow ECharts, donut gastos por categoría, alertas y transacciones recientes.
+- **Fase 5.3** — Página de transacciones: tabla filtrable/paginada, badges ML IA/Sugerida, importación CSV 3 pasos, feedback ML inline.
+- **Fase 5.4** — Página de presupuestos: cards con semáforo, historial 3 meses, gráfico comparativo, CRUD modal.
+- **Fase 5.5** — Página de inversiones: cards por tipo, timeline Gantt vencimientos, rendimiento bajo demanda, renovación.
+- **Fase 5.6** — Página de hipoteca: simulador fijo/variable/mixto, comparador hasta 3 escenarios, capacidad, guardadas.
+- **Fase 5.7** — Página de predicciones: forecast P10/P50/P90 con bandas, escenarios what-if, estado modelos ML.
+- **Fase 5.8** — Página de configuración: perfil + cuentas, categorías CRUD, configuración fiscal IRPF, preferencias UI.
 
-- `models/account.py`, `models/category.py`, `models/transaction.py` — modelos SQLAlchemy
-- `schemas/accounts.py`, `schemas/categories.py`, `schemas/transactions.py` — schemas Pydantic
-- `services/accounts.py`, `services/categories.py` (con seeder), `services/transactions.py` — lógica de negocio
-- `api/v1/accounts.py`, `api/v1/categories.py`, `api/v1/transactions.py` — routers CRUD
-- `alembic/versions/0002_add_accounts_categories_transactions.py` — migración
-- Seeder de categorías por defecto ejecutado en lifespan de FastAPI
-
-Con la **Fase 1.4** se han añadido:
-
-- `utils/csv_parser.py` — Parser para formato CSV de OpenBank (separador `;`, fecha DD/MM/YYYY, coma decimal, encoding UTF-8/latin-1)
-- `schemas/imports.py` — Schemas Pydantic: `ImportResult`, `ImportRowResult`, `ImportRowStatus`
-- `services/imports.py` — Lógica de importación con deduplicación y modo dry_run
-- `api/v1/transactions.py` — Endpoint `POST /transactions/import/csv` (query params: `account_id`, `dry_run`)
-- `tests/fixtures/openbank_sample.csv` — CSV de muestra para tests
-- `tests/test_imports.py` — 11 tests de importación
-
-Con la **Fase 2.1** se han añadido:
-
-- `models/budget.py` — modelos `Budget` y `BudgetAlert` con `UniqueConstraint(user_id, category_id, period_year, period_month)`
-- `schemas/budgets.py` — schemas Pydantic: `BudgetCreate`, `BudgetUpdate`, `BudgetResponse`, `BudgetStatusResponse`, `BudgetAlertResponse`
-- `services/budgets.py` — lógica CRUD + `get_budget_status` (suma gastos del período, calcula % consumido, crea alertas al superar el umbral configurable) + `list_alerts`/`mark_alert_read`
-- `api/v1/budgets.py` — router con 9 endpoints (CRUD + `/{id}/status` + `/status` listado por período + `/alerts` + `/alerts/{id}/read`)
-- `alembic/versions/0003_add_budgets.py` — migración tablas `budgets` y `budget_alerts`
-- `tests/test_budgets.py` — 18 tests
-- `docker-compose.dev.yml` — añadido volume mount `./backend/tests:/app/tests`
-
-Con la **Fase 2.2** se han añadido:
-
-- `models/investment.py` — modelo `Investment` (depósitos, fondos, acciones, bonos) con campos: `investment_type`, `principal_amount`, `interest_rate`, `interest_type` (simple/compound), `compounding_frequency`, `start_date`, `maturity_date`, `auto_renew`, `renewal_period_months`, `renewals_count`, `current_value`
-- `schemas/investments.py` — schemas Pydantic: `InvestmentCreate` (con `@model_validator` para validar compound+frequency y maturity>start), `InvestmentUpdate`, `InvestmentResponse`, `InvestmentStatusResponse`, `InvestmentSummaryResponse`
-- `services/investments.py` — lógica CRUD + `_calculate_return` (interés simple y compuesto) + `get_investment_status` (rendimiento acumulado a día de hoy) + `renew_investment` (extiende maturity_date) + `get_investment_summary` (totales agregados)
-- `api/v1/investments.py` — router con 8 endpoints: `GET /summary`, `POST /`, `GET /`, `GET /{id}`, `GET /{id}/status`, `PATCH /{id}`, `DELETE /{id}`, `POST /{id}/renew`
-- `alembic/versions/0004_add_investments.py` — migración tabla `investments`
-- `tests/test_investments.py` — 23 tests
-
-Con la **Fase 2.3** se han añadido:
-
-- `schemas/analytics.py` — schemas Pydantic: `OverviewResponse`, `CashflowMonthResponse`, `CategoryExpenseResponse`, `SavingsRateMonthResponse`, `TrendsResponse`
-- `services/analytics.py` — lógica de agregación con SQLAlchemy async: `get_overview` (ingresos/gastos/ahorro/balance total de cuentas activas), `get_cashflow` (últimos N meses con ceros para meses sin datos), `get_expenses_by_category` (agrupado con % del total), `get_savings_rate` (tasa mensual + medias móviles 3m y 6m), `get_trends` (cambio % vs mes anterior y vs media 12 meses)
-- `api/v1/analytics.py` — router con 5 endpoints GET bajo `/analytics` (overview, cashflow, expenses-by-category, savings-rate, trends)
-- `tests/test_analytics.py` — 21 tests de integración
-
-Con la **Fase 2.5** se han añadido:
-
-- `models/tax.py` — modelos `TaxBracket` (tramos IRPF, tabla sistema, seeded) y `TaxConfig` (configuración bruto por usuario y año, `UniqueConstraint(user_id, tax_year)`)
-- `schemas/tax.py` — schemas Pydantic: `TaxBracketResponse`, `TaxConfigCreate/Update/Response`, `BracketBreakdown`, `TaxCalculationResponse`
-- `services/tax.py` — lógica: `seed_tax_brackets` (idempotente, 2025/2026 general+ahorro), CRUD de TaxConfig, `calculate_tax` (bruto→neto: SS 6.35%/6.50% según año, base máxima mensual, reducción trabajo 2.000€, mínimo personal 5.550€, tramos progresivos)
-- `api/v1/tax.py` — router con 7 endpoints bajo `/tax`: `GET /brackets`, `POST /configs`, `GET /configs`, `GET /configs/{id}`, `GET /configs/{id}/calculation`, `PATCH /configs/{id}`, `DELETE /configs/{id}`
-- `alembic/versions/0006_add_tax.py` — migración tablas `tax_brackets` y `tax_configs`
-- `tests/test_tax.py` — 26 tests de integración
-- `services/mortgage.py` y `api/v1/mortgage.py` — parámetro opcional `tax_config_id` en `GET /mortgage/affordability` para usar salario neto real en vez de ingresos de transacciones
-- `tests/conftest.py` — se añade llamada al seeder de tramos IRPF en la fixture de test (junto al seeder de categorías)
-
-Con la **Fase 2.4** se han añadido:
-
-- `utils/mortgage.py` — Motor de cálculo hipotecario puro (sin BD): `monthly_payment` (PMT sistema francés), `amortization_schedule` (fijo/variable/mixto con revisión anual o semestral), `effective_annual_rate` (TAE via Newton-Raphson), `closing_costs` (notaría, registro, ITP/AJD, gestoría, tasación)
-- `schemas/mortgage.py` — Schemas Pydantic: `MortgageSimulateRequest` (con `@model_validator` para validar campos por tipo), `MortgageSimulationResult`, `AmortizationRowSchema`, `ClosingCostsSchema`, `MortgageCompareRequest/Response`, `ScenarioParams`, `AffordabilityResponse`, `MaxLoanOption`, `MortgageSaveRequest`, `MortgageSimulationResponse`
-- `services/mortgage.py` — Lógica de negocio: `simulate_mortgage` (stateless), `compare_scenarios` (compara hasta 5 escenarios), `get_affordability` (regla 35% sobre ingresos reales de analytics), CRUD de simulaciones guardadas
-- `api/v1/mortgage.py` — Router con 7 endpoints bajo `/mortgage`: `POST /simulate`, `POST /compare`, `GET /affordability`, `POST /simulations`, `GET /simulations`, `GET /simulations/{id}`, `DELETE /simulations/{id}`
-- `models/mortgage.py` — Modelo SQLAlchemy `MortgageSimulation` con parámetros de entrada y resultados pre-calculados
-- `alembic/versions/0005_add_mortgage_simulations.py` — Migración tabla `mortgage_simulations`
-- `tests/test_mortgage.py` — 26 tests de integración
-
-Con la **Fase 3.1** se han añadido:
-
-- `ml-service/` — Microservicio FastAPI dedicado a ML (port 8001), independiente del backend
-- `ml-service/Dockerfile` — Imagen base `pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime`, usuario no-root
-- `ml-service/app/main.py` — App FastAPI con middleware de logging estructurado y lifespan (placeholder para carga de modelo en Fase 3.2)
-- `ml-service/app/config.py` — Settings: `model_path`, `categorization_threshold` (0.92), `categorization_suggest_threshold` (0.5), `redis_url` (db 3)
-- `ml-service/app/routers/health.py` — `GET /health` (stub: `model_loaded=False`)
-- `ml-service/app/routers/predict.py` — `POST /predict` (stub: devuelve respuesta sin modelo cargado)
-- `ml-service/app/routers/feedback.py` — `POST /feedback` (registra evento en log; almacenamiento pendiente en Fase 3.3)
-- `ml-service/app/routers/model.py` — `GET /model/status` (stub: `loaded=False`)
-- `ml-service/app/schemas/` — `PredictRequest/Response`, `FeedbackRequest/Response`, `ModelStatusResponse`
-- `backend/app/schemas/ml.py` — `MLPredictRequest/Response`, `MLFeedbackRequest/Response` (campo `ml_available` para degradación graceful)
-- `backend/app/services/ml_client.py` — `MLClient`: cliente HTTP async con degradación graceful (si el servicio no está disponible devuelve respuestas stub sin interrumpir el flujo principal)
-- `backend/app/api/v1/ml.py` — Router con 3 endpoints protegidos: `POST /ml/predict`, `POST /ml/feedback`, `GET /ml/status`
-- `docker-compose.dev.yml` — ml-service con soporte GPU (`nvidia` runtime), volume persistente `ml_models:/app/models`, health check, dependencia de Redis
-- `ml-service/tests/test_health.py`, `ml-service/tests/test_predict.py` — 9 tests de infraestructura (stubs + validaciones)
-- `backend/tests/test_ml_client.py` — Tests del cliente ML con mock `respx` (sin dependencia del servicio real)
-
-Con la **Fase 3.2** se han añadido:
-
-- `ml-service/app/ml/__init__.py` — módulo ML
-- `ml-service/app/ml/categories.py` — catálogo fijo de 10 categorías del sistema con mapeo índice↔nombre (ML service no tiene acceso a BD)
-- `ml-service/app/ml/preprocessor.py` — `normalize_banking_text()`: normaliza texto bancario (referencias numéricas, fechas, ruido)
-- `ml-service/app/ml/model_manager.py` — `ModelManager`: singleton que carga DistilBERT desde `/app/models/categorizer/`, expone `predict()` y `get_status()`; modo degradado si no hay modelo
-- `ml-service/data/synthetic_dataset.py` — genera `data/dataset.json` con ~800 ejemplos de transacciones bancarias españolas (80 por categoría)
-- `ml-service/scripts/train.py` — fine-tuning de `distilbert-base-multilingual-cased` con el dataset; guarda modelo + metadata en `/app/models/categorizer/`
-- `ml-service/app/routers/predict.py` — stub reemplazado: inferencia real via `ModelManager.predict()`; thresholds 0.92/0.5 configurables
-- `ml-service/app/routers/feedback.py` — stub reemplazado: almacena feedback en Redis (lista `ml:feedback`) para reentrenamiento (Fase 3.3)
-- `ml-service/app/routers/health.py`, `model.py` — actualizados con estado real de `ModelManager`
-- `ml-service/app/main.py` — lifespan carga `ModelManager` e inyecta en `app.state.model_manager`
-- `ml-service/app/config.py` — añadido campo `device: str = "cpu"` (soporte GPU/CPU)
-- `ml-service/pyproject.toml` — corrección build backend a `setuptools.build_meta` (compatible con Python 3.11 de la imagen pytorch)
-- `ml-service/tests/conftest.py` — inicializa `ModelManager` degradado en `app.state` antes de los tests (ASGITransport no dispara lifespan)
-- `ml-service/tests/test_predict.py` — actualizado a comportamiento modo degradado (`model_version="degraded"`, `status in ("stored","queued")`)
-- `ml-service/tests/test_categorization.py` — 18 nuevos tests: catálogo de categorías, preprocessor, ModelManager degradado, endpoints API
-- `backend/app/schemas/transactions.py` — `TransactionResponse` añade `ml_suggested_category_id: UUID | None` y `ml_confidence: float | None`
-- `backend/app/services/transactions.py` — nueva función `create_transaction_with_ml()`: crea transacción y llama ML; auto-asigna categoría si confianza > 0.92, devuelve sugerencia si > 0.5
-- `backend/app/api/v1/transactions.py` — `POST /transactions` usa `create_transaction_with_ml()` en lugar de `create_transaction()`
-- `backend/tests/test_transactions.py` — 5 nuevos tests de integración ML con respx (auto-asignación, sugerencia, campos ML en respuesta, skip cuando hay categoría explícita)
-
-Con la **Fase 3.3** se han añadido:
-
-- `ml-service/app/ml/trainer.py` — Módulo reutilizable: `build_training_examples` (dataset base + feedback Redis), `run_incremental_retrain` (fine-tune desde modelo activo), `get_next_version`, `evaluate`, `train_val_split`
-- `ml-service/scripts/train.py` — Refactorizado para importar de `app.ml.trainer`; sigue funcionando como CLI
-- `ml-service/app/ml/model_manager.py` — Añadido `async reload()` para recargar modelo en caliente
-- `ml-service/app/schemas/model.py` — `ModelStatusResponse` añade `retrain_in_progress: bool`
-- `ml-service/app/schemas/retrain.py` — `RetrainResponse(status, feedback_count, reason?, model_version?)`
-- `ml-service/app/routers/model.py` — `GET /model/status` lee `feedback_count` real de Redis y `retrain_in_progress` desde `app.state`
-- `ml-service/app/routers/retrain.py` — `POST /retrain`: lee feedback Redis, verifica umbrales, lanza training en ThreadPoolExecutor, devuelve 202. Callback promueve candidato si accuracy ≥ activo−2%, descarta si no. History en `/app/models/history/`.
-- `ml-service/app/config.py` — Añadidos: `min_feedback_for_retrain=10`, `retrain_epochs=2`, `retrain_batch_size=16`
-- `ml-service/app/main.py` — Registrado router `retrain`, inicializado `app.state.retrain_in_progress=False`
-- `backend/app/tasks/celery_app.py` — Instancia `Celery` + `beat_schedule` semanal (domingo 3AM, configurable)
-- `backend/app/tasks/__init__.py` — Exporta `celery_app` para que `celery -A app.tasks` funcione
-- `backend/app/tasks/ml_retraining.py` — Task `trigger_ml_retrain`: llama `ml_client.trigger_retrain_sync()`, degradación graceful
-- `backend/app/services/ml_client.py` — Añadido `trigger_retrain_sync()` síncrono para uso desde Celery
-- `backend/app/config.py` — Añadidos: `ml_retrain_min_feedback`, `ml_retrain_schedule_hour`, `ml_retrain_schedule_day_of_week`
-- `ml-service/tests/test_trainer.py` — 11 tests unitarios del módulo trainer
-- `ml-service/tests/test_retrain.py` — 12 tests del endpoint `/retrain` y callbacks
-- `backend/tests/test_celery_tasks.py` — 7 tests de `trigger_retrain_sync` y la Celery task
-
-Con la **Fase 4.1** se han añadido:
-
-- `ml-service/app/ml/lstm_model.py` — Arquitectura `CashflowLSTM`: LSTM bidireccional (2 capas, hidden=64, MC Dropout para intervalos de confianza)
-- `ml-service/app/ml/forecaster.py` — Singleton `Forecaster` (patrón análogo a `ModelManager`): carga LSTM desde disco, Prophet como fallback, modo degradado con ceros
-- `ml-service/app/schemas/forecast.py` — Schemas: `MonthlyPoint`, `ForecastPoint`, `ForecastRequest`, `ForecastResponse`, `ForecastRetrainResponse`, `ForecastStatusResponse`
-- `ml-service/app/routers/forecast.py` — Router con 3 endpoints: `POST /forecast` (inferencia), `POST /forecast/retrain` (reentrenamiento async en ThreadPoolExecutor), `GET /forecast/status`
-- `ml-service/data/generate_timeseries.py` — Generador de dataset sintético (200 series × 36 meses, 5 perfiles de usuario españoles)
-- `ml-service/scripts/train_forecaster.py` — CLI de entrenamiento inicial LSTM
-- `ml-service/app/config.py` — Nuevos campos: `forecast_model_path`, `forecast_min_months`, `forecast_min_series_for_retrain`, `forecast_retrain_epochs/batch_size`
-- `ml-service/pyproject.toml` — Nuevas dependencias: `scikit-learn>=1.4`, `prophet>=1.1`
-- `ml-service/tests/test_forecast.py` — 15 tests (degraded mode, validación, schema, unitarios de Forecaster)
-- `backend/app/schemas/forecasting.py` — `ForecastMonthResponse`, `CashflowForecastResponse`
-- `backend/app/schemas/ml.py` — Añadidos `MLForecastPoint`, `MLForecastRequest`, `MLForecastResponse`
-- `backend/app/services/forecasting.py` — `get_cashflow_forecast()`: obtiene historial via analytics + llama ml-service + degradación graceful
-- `backend/app/services/ml_client.py` — Añadidos `forecast()` (async) y `trigger_forecast_retrain_sync()` (sync para Celery)
-- `backend/app/api/v1/analytics.py` — Endpoint `GET /analytics/forecast?months=6`
-- `backend/app/tasks/forecasting.py` — Celery task `trigger_forecast_retrain`
-- `backend/app/tasks/celery_app.py` — Beat schedule mensual (1 de cada mes 4AM)
-- `backend/app/config.py` — Nuevos campos: `ml_forecast_min_months`, `ml_forecast_max_ahead`, `ml_forecast_retrain_schedule_hour`
-- `backend/tests/test_forecasting.py` — 11 tests de integración
-
-Con la **Fase 4.3** se han añadido:
-
-- `backend/app/schemas/mortgage.py` — Añadidos `StressTestResult` y `AIAffordabilityResponse`: respuesta del nuevo endpoint con ingresos predichos P10/P50/P90, max_loan por percentil, stress tests por nivel de Euríbor, comparación vs capacidad actual
-- `backend/app/services/mortgage.py` — Nueva función `get_ai_affordability()`: pipeline de 6 pasos (capacidad actual, historial, forecast ML, ingresos promedio predichos, Euríbor base desde MortgageSimulation, stress tests). Reutiliza `_max_loan_for_payment`, `_irpf_monthly` (import local), `ml_client.forecast()` y `analytics_svc.get_cashflow()`. El flag `is_affordable` compara el pago del préstamo baseline (nivel 0) a la tasa estresada vs 35% del ingreso predicho P50.
-- `backend/app/api/v1/mortgage.py` — Endpoint `GET /mortgage/ai-affordability` con query params: `months_ahead` (6-24), `term_years` (5-40), `tax_config_id`, `gross_annual`, `euribor_stress_levels` (lista de incrementos)
-- `backend/app/config.py` — Nuevos campos: `ai_affordability_default_euribor` (3.5), `ai_affordability_default_spread` (0.8), `ai_affordability_monte_carlo_simulations` (1000)
-- `backend/tests/test_mortgage.py` — 18 nuevos tests de integración con `respx` para mockear ml-service (auth, estructura, ML degradado, invariantes P10≤P50≤P90, Euríbor decreciente, is_affordable, validación, labels)
-
-Con la **Fase 4.2** se han añadido:
-
-- `backend/app/utils/monte_carlo.py` — Funciones puras NumPy: `simulate_net_distribution` (MC con σ estimado del intervalo P10/P90), `apply_scenario_modifications` (variaciones deterministas)
-- `backend/app/schemas/scenarios.py` — Schemas Pydantic: `RecurringExpenseModification`, `ScenarioRequest` (salary_variation_pct, euribor_variation_pct, recurring_expense_modifications, gross_annual, tax_year, monte_carlo_simulations), `ScenarioMonthResult`, `ScenarioSummary`, `ScenarioResponse`
-- `backend/app/services/scenarios.py` — Motor principal stateless: histórico → delta gastos → impacto Euríbor (busca MortgageSimulation variable/mixta) → forecast ML → IRPF puro → Monte Carlo por mes → resumen. Función `_irpf_monthly()` replica lógica de `services/tax.py` sin BD
-- `backend/app/api/v1/scenarios.py` — Router `POST /scenarios/analyze` protegido con auth
-- `backend/app/api/v1/__init__.py` — Registrado `scenarios.router`
-- `backend/app/config.py` — Nuevo campo `scenario_monte_carlo_simulations=1000`
-- `backend/tests/test_scenarios.py` — 19 tests (auth, variaciones de sueldo, gastos recurrentes, impacto fiscal, Euríbor sin hipoteca, degradación ML, validación, P10≤P50≤P90, funciones puras)
-
-Los módulos `utils/` financieros (TIR, VAN) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan de 7 fases.
-
-Con la **Fase 5.1** se han añadido:
-
-- `frontend/` — Proyecto SvelteKit con TypeScript, Skeleton UI v2 + Tailwind CSS v3
-- `frontend/Dockerfile` — Imagen `node:20-alpine`; código fuente montado como volume para HMR
-- `frontend/src/lib/api/client.ts` — `apiFetch` con interceptor 401 → refresh → retry y mutex (cola `refreshQueue` evita N llamadas a `/auth/refresh` simultáneas)
-- `frontend/src/lib/api/auth.ts` — `login` (FormData OAuth2, campo `username`), `register` (JSON), `getMe`, `refreshTokens`
-- `frontend/src/lib/stores/auth.ts` — `authStore` (setSession, loadUser, logout), derivados `isAuthenticated` y `currentUser`
-- `frontend/src/lib/stores/ui.ts` — `sidebarOpen`, `toggleSidebar`
-- `frontend/src/lib/types.ts` — Interfaces TypeScript: `Token`, `User`, `UserCreate`, `AuthState`
-- `frontend/src/routes/+layout.ts` — `ssr: false` global (tokens en localStorage, no accesibles en SSR Node)
-- `frontend/src/routes/+layout.svelte` — Skeleton `initializeStores` + `computeLightSwitch` (tema oscuro persistido)
-- `frontend/src/routes/login/+page.svelte` — Página de login/registro con TabGroup, redirect preservado via `?redirect=`
-- `frontend/src/routes/(app)/+layout.ts` — Auth guard: redirige a `/login?redirect=...` si no hay token
-- `frontend/src/routes/(app)/+layout.svelte` — `AppShell` de Skeleton con sidebar responsivo (desktop fijo, mobile drawer) y header con `LightSwitch`
-- `frontend/src/routes/(app)/dashboard/+page.svelte` — Placeholder con KPI cards (implementación real en Fase 5.2)
-- `frontend/tests/` — 25 tests Vitest: 11 de api-client (headers, refresh, mutex), 7 de auth-store, 7 de login-page
-- `docker-compose.dev.yml` — Añadido servicio `frontend` (puerto 3000, volume mounts `src/` y `static/`)
-- `.env.example` — Añadidas variables `FRONTEND_PORT=3000` y `VITE_API_URL=http://localhost:8000`
-
-**Nota:** `@sveltejs/kit` está pinado a `"2.12.1"` (sin `^`) y se añade `"@sveltejs/vite-plugin-svelte": "^3.1.2"` explícitamente para mantener compatibilidad con Skeleton UI v2 (Svelte 4). Las versiones con `^` resuelven a Kit 2.55+ que requiere Svelte 5.
-
-Con la **Fase 5.2** se han añadido:
-
-- `frontend/src/lib/types.ts` — Extendido con interfaces de dominio: `OverviewData`, `CashflowMonth`, `CategoryExpense`, `BudgetAlertResponse`, `TransactionItem`, `PaginatedTransactions`, `DashboardData`
-- `frontend/src/lib/api/analytics.ts` — 6 funciones de API: `getOverview`, `getCashflow`, `getExpensesByCategory`, `getBudgetAlerts`, `markAlertRead`, `getRecentTransactions`
-- `frontend/src/lib/utils/format.ts` — Helpers de formateo: `formatCurrency` (Intl.NumberFormat es-ES EUR), `formatPercent`, `formatMonth`
-- `frontend/src/lib/stores/dashboard.ts` — `dashboardStore` con `load()` (Promise.allSettled, cache 60s, degradación parcial), `markAlertRead()` (optimista), `refresh()`; derivados `dashboardData`, `dashboardLoading`, `dashboardError`
-- `frontend/src/lib/components/dashboard/KpiCard.svelte` — Card KPI con skeleton animado, formateo por tipo y tendencia
-- `frontend/src/lib/components/dashboard/CashflowChart.svelte` — Gráfico de barras agrupadas ECharts (ingresos/gastos) con importación dinámica y ResizeObserver
-- `frontend/src/lib/components/dashboard/ExpensesPieChart.svelte` — Donut ECharts de gastos por categoría con leyenda y tooltip
-- `frontend/src/lib/components/dashboard/BudgetAlertsWidget.svelte` — Lista de alertas activas con badges y botón "Marcar leída" vía evento Svelte
-- `frontend/src/lib/components/dashboard/RecentTransactionsWidget.svelte` — Lista de últimas transacciones con formateo por tipo
-- `frontend/src/routes/(app)/dashboard/+page.svelte` — Dashboard completo con grid responsivo (4 KPIs + 2 gráficos + 2 widgets)
-- `frontend/src/routes/(app)/dashboard/+page.ts` — Stub de load function (carga real ocurre en onMount via store)
-- `frontend/tests/unit/analytics-api.test.ts` — 8 tests de las funciones de API
-- `frontend/tests/unit/dashboard-store.test.ts` — 8 tests del store (carga completa, fallos parciales, cache, markAlertRead)
-- `frontend/tests/unit/kpi-card.test.ts` — 6 tests del componente KpiCard
-- `frontend/tests/unit/format.test.ts` — 9 tests de los helpers de formateo
-- `echarts` — Nueva dependencia npm para gráficos (importación dinámica en onMount para evitar SSR issues)
-
-Con la **Fase 5.3** se han añadido:
-
-- `frontend/src/lib/types.ts` — Extendido con 7 interfaces nuevas: `AccountResponse`, `CategoryResponse`, `TransactionCreate`, `TransactionUpdate`, `TransactionFilters`, `ImportResult`, `ImportRowResult`
-- `frontend/src/lib/api/accounts.ts` — `getAccounts()`: listado de cuentas del usuario
-- `frontend/src/lib/api/categories.ts` — `getCategories()`: listado de categorías (sistema + custom)
-- `frontend/src/lib/api/transactions.ts` — 6 funciones: `getTransactions` (con filtros y paginación), `createTransaction`, `updateTransaction`, `deleteTransaction`, `importCsv` (FormData, soporte dry_run), `sendMlFeedback`
-- `frontend/src/lib/api/index.ts` — re-exporta `accountsApi`, `categoriesApi`, `transactionsApi`
-- `frontend/src/lib/stores/transactions.ts` — `transactionsStore`: carga paralela (Promise.allSettled) de transacciones + cuentas + categorías, cache 60s, métodos: `setFilters` (reset página 1), `changePage`, `deleteTransaction`, `updateCategory` (PATCH + sendMlFeedback si había sugerencia ML), `addTransaction`, `editTransaction`, `refresh`; derivados: `transactionsData`, `transactionsLoading`, `transactionsError`, `transactionsAccounts`, `transactionsCategories`, `transactionsFilters`
-- `frontend/src/lib/components/transactions/TransactionFilters.svelte` — Panel de filtros (fecha inicio/fin, tipo, categoría, cuenta) con evento `on:change` y botón "Limpiar"
-- `frontend/src/lib/components/transactions/TransactionRow.svelte` — Fila de tabla: badge "🤖 IA" (confidence > 0.92), badge "💡 Sugerida" (0.5–0.92), sin badge (manual); dropdown inline de edición de categoría con feedback ML; colores de importe (verde/rojo/gris); eventos `on:delete`, `on:categoryChange`, `on:edit`
-- `frontend/src/lib/components/transactions/TransactionForm.svelte` — Modal crear/editar: sugerencia ML en blur de descripción (POST /ml/predict), badge de confianza sobre el select de categoría, soporte recurrencia, validación client-side
-- `frontend/src/lib/components/transactions/CsvImportModal.svelte` — Importación CSV en 3 pasos: selección de archivo + cuenta → preview con dry_run=true (tabla de filas con badges ✓/⚠/✕) → confirmación con dry_run=false + resumen final
-- `frontend/src/routes/(app)/transactions/+page.ts` — Stub load function
-- `frontend/src/routes/(app)/transactions/+page.svelte` — Página completa: tabla filtrable/paginada + `TransactionForm` + `CsvImportModal`
-- `frontend/tests/unit/transactions-api.test.ts` — 9 tests de las funciones API
-- `frontend/tests/unit/transactions-store.test.ts` — 9 tests del store (carga, filtros, paginación, feedback ML)
-- `frontend/tests/unit/transaction-row.test.ts` — 8 tests del componente (badges ML, colores, eventos)
-- `docker-compose.dev.yml` — añadido volume mount `./frontend/tests:/app/tests`
-
-Con la **Fase 5.4** se han añadido:
-
-- `frontend/src/lib/types.ts` — Reemplazados `BudgetDetail`/`BudgetStatusItem` por `BudgetResponse`, `BudgetCreate`, `BudgetUpdate`, `BudgetStatusResponse` completos
-- `frontend/src/lib/api/budgets.ts` — 7 funciones: `getBudgets`, `createBudget`, `updateBudget`, `deleteBudget`, `getBudgetStatuses`, `getBudgetAlerts`, `markBudgetAlertRead`
-- `frontend/src/lib/api/index.ts` — re-exporta `budgetsApi`
-- `frontend/src/lib/stores/budgets.ts` — `budgetsStore`: carga statuses del mes + 2 meses anteriores en paralelo (Promise.allSettled), caché 60s, métodos `createBudget`/`updateBudget`/`deleteBudget`; derivados `budgetsData`, `budgetsHistory`, `budgetsCategories`, `budgetsLoading`, `budgetsError`, `budgetsPeriod`
-- `frontend/src/lib/components/budgets/BudgetCard.svelte` — Card con progress bar semáforo (verde/naranja/rojo), badges "🚨 Superado"/"⚠ Alerta", confirmación inline de borrado, skeleton loading
-- `frontend/src/lib/components/budgets/BudgetForm.svelte` — Modal crear/editar: select de categoría (filtra ya usadas), límite, umbral (range 0-100), nombre opcional; categoría deshabilitada en edición
-- `frontend/src/lib/components/budgets/BudgetHistoryChart.svelte` — Gráfico ECharts barras agrupadas (3 series: mes-2, mes-1, actual) con importación dinámica y ResizeObserver
-- `frontend/src/routes/(app)/budgets/+page.ts` — Stub load function
-- `frontend/src/routes/(app)/budgets/+page.svelte` — Página completa: navegación mes anterior/siguiente, 3 KPIs (total presupuestado, gastado, % medio), grid de BudgetCards, estado vacío, gráfico comparativo, modal BudgetForm
-- `frontend/tests/unit/budgets-api.test.ts` — 8 tests de las funciones API
-- `frontend/tests/unit/budgets-store.test.ts` — 8 tests del store (caché, historial, degradación parcial, CRUD)
-- `frontend/tests/unit/budget-card.test.ts` — 6 tests del componente (badges, porcentaje, evento edit)
-
-Con la **Fase 5.5** se han añadido:
-
-- `frontend/src/lib/types.ts` — Añadidos tipos de inversiones: `InvestmentType`, `InterestType`, `CompoundingFrequency`, `InvestmentResponse`, `InvestmentCreate`, `InvestmentUpdate`, `InvestmentStatusResponse`, `InvestmentSummaryResponse`
-- `frontend/src/lib/api/investments.ts` — 8 funciones: `getInvestmentSummary`, `getInvestments` (filtros: `investment_type`, `is_active`), `getInvestment`, `getInvestmentStatus`, `createInvestment`, `updateInvestment`, `deleteInvestment`, `renewInvestment`
-- `frontend/src/lib/api/index.ts` — Re-exporta `investmentsApi`
-- `frontend/src/lib/stores/investments.ts` — `investmentsStore`: carga inversiones + summary en paralelo (Promise.allSettled), caché 60s, métodos `setTypeFilter`/`createInvestment`/`updateInvestment`/`deleteInvestment`/`renewInvestment`; derivados: `investmentsData` (filtrado por tipo), `investmentsSummary`, `investmentsLoading`, `investmentsError`, `investmentsTypeFilter`, `investmentsMaturingSoon` (vencen en ≤30 días)
-- `frontend/src/lib/components/investments/InvestmentCard.svelte` — Card con badge por tipo (deposit=azul/fund=verde/stock=naranja/bond=morado), badge "Vence pronto" (≤30 días), rendimiento cargado bajo demanda vía `getInvestmentStatus` en `onMount`, confirmación inline de borrado, botón Renovar (si tiene maturity_date y renewal_period_months)
-- `frontend/src/lib/components/investments/InvestmentForm.svelte` — Modal crear/editar: tipo/capital/interés simple-compuesto/frecuencia capitalización/fechas/renovación automática/valor actual/cuenta/notas; validaciones client-side; tipo y capital deshabilitados en edición
-- `frontend/src/lib/components/investments/MaturityTimeline.svelte` — Gráfico ECharts Gantt (barras horizontales): eje Y=nombres, eje X=fechas, colores por tipo, línea vertical "Hoy", tooltip con capital y días restantes; importación dinámica + ResizeObserver
-- `frontend/src/routes/(app)/investments/+page.ts` — Stub load (ssr: false)
-- `frontend/src/routes/(app)/investments/+page.svelte` — Página completa: 4 KPIs (capital/valor actual/rendimiento/nº activas + aviso vencimientos próximos), filtros pill por tipo, grid responsive de InvestmentCards, estado vacío, MaturityTimeline (solo si hay inversiones con vencimiento), modal InvestmentForm
-- `frontend/tests/unit/investments-api.test.ts` — 8 tests de funciones API
-- `frontend/tests/unit/investments-store.test.ts` — 8 tests del store (caché, forceRefresh, CRUD, degradación parcial)
-- `frontend/tests/unit/investment-card.test.ts` — 6 tests del componente (badges, skeleton, eventos edit/delete)
-
-Con la **Fase 5.6** se han añadido:
-
-- `frontend/src/lib/types.ts` — Añadidos 13 tipos de hipoteca: `MortgageRateType`, `MortgagePropertyType`, `MortgageReviewFrequency`, `AmortizationRow`, `ClosingCosts`, `MortgageSimulateRequest`, `MortgageSimulationResult`, `ScenarioParams`, `MortgageCompareRequest/Response`, `MortgageScenarioSummary`, `MaxLoanOption`, `AffordabilityResponse`, `MortgageSaveRequest`, `MortgageSimulationResponse`, `StressTestResult`, `AIAffordabilityResponse`
-- `frontend/src/lib/api/mortgage.ts` — 8 funciones: `simulateMortgage`, `compareMortgages`, `getAffordability`, `getAIAffordability`, `getMortgageSimulations`, `getMortgageSimulation`, `saveMortgageSimulation`, `deleteMortgageSimulation`
-- `frontend/src/lib/api/index.ts` — re-exporta `mortgageApi`
-- `frontend/src/lib/stores/mortgage.ts` — `mortgageStore`: estado con `simulations`, `currentResult`, `comparisonResult`, `affordabilityData`, caché 60s, métodos: `load`, `simulate`, `compare`, `loadAffordability`, `saveSimulation`, `deleteSimulation` (optimistic), `clearResult`; derivados: `mortgageSimulations`, `mortgageCurrentResult`, `mortgageComparison`, `mortgageAffordability`, `mortgageLoading`, `mortgageCalculating`, `mortgageError`
-- `frontend/src/lib/components/mortgage/MortgageSimulatorForm.svelte` — Formulario completo: precio/entrada/LTV, tipo hipoteca (fijo/variable/mixto) con pills reactivos, slider de plazo 5-40 años, Euríbor + diferencial, gastos de cierre, KPIs inline tras calcular, modal de guardado
-- `frontend/src/lib/components/mortgage/AmortizationChart.svelte` — ECharts mixto (barras capital+interés apiladas + línea saldo pendiente), vista tabla alternativa con filas completas, desglose gastos de cierre en `<details>`
-- `frontend/src/lib/components/mortgage/ComparisonPanel.svelte` — Hasta 3 escenarios configurables, tabla comparativa con ahorro vs primer escenario, gráfico barras ECharts
-- `frontend/src/lib/components/mortgage/AffordabilityPanel.svelte` — 3 KPIs (ingreso neto, cuota máx 35%, préstamo recomendado) + tabla de 6 opciones predefinidas
-- `frontend/src/routes/(app)/mortgage/+page.ts` — `ssr: false`
-- `frontend/src/routes/(app)/mortgage/+page.svelte` — Página con `TabGroup` de 4 tabs: Simulador | Comparador | Capacidad | Guardadas (con badge contador); grid de simulaciones guardadas con acciones Cargar/Eliminar
-- `frontend/tests/unit/mortgage-api.test.ts` — 8 tests de API (POST simulate/compare, GET affordability con y sin taxConfigId, CRUD simulaciones, error DELETE)
-- `frontend/tests/unit/mortgage-store.test.ts` — 8 tests del store (estado inicial, load, caché TTL, simulate, compare, affordability, save, delete optimistic)
-
-Con la **Fase 5.7** se han añadido:
-
-- `frontend/src/lib/types.ts` — Añadidos 8 tipos de predicciones: `ForecastMonth`, `CashflowForecast`, `RecurringExpenseModification`, `ScenarioRequest`, `ScenarioMonthResult`, `ScenarioSummary`, `ScenarioResponse`, `MLModelStatus`
-- `frontend/src/lib/api/predictions.ts` — 3 funciones: `getForecast(months?)` → `GET /analytics/forecast`, `analyzeScenario(request)` → `POST /scenarios/analyze`, `getMLStatus()` → `GET /ml/status`
-- `frontend/src/lib/api/index.ts` — re-exporta `predictionsApi`
-- `frontend/src/lib/stores/predictions.ts` — `predictionsStore`: carga forecast + mlStatus en paralelo (Promise.allSettled), caché 60s, métodos: `load`, `analyzeScenario` (sets `isCalculating`), `clearScenario`; derivados: `predictionsLoading`, `predictionsCalculating`, `predictionsError`, `forecastData`, `scenarioData`, `mlStatusData`
-- `frontend/src/lib/components/predictions/ForecastChart.svelte` — ECharts líneas P50 con bandas de confianza P10/P90 semitransparentes (área apilada invisible+visible), colores verde/rojo, ResizeObserver
-- `frontend/src/lib/components/predictions/ScenarioForm.svelte` — Formulario con sliders: sueldo (-50%/+100%), Euríbor (-2/+5pp), meses (1-24); lista dinámica de gastos recurrentes (add/remove); sección fiscal opcional (gross_annual, tax_year); selector Monte Carlo simulations
-- `frontend/src/lib/components/predictions/ScenarioResultsChart.svelte` — ECharts barras agrupadas (baseline azul vs escenario naranja P50) con banda P10/P90; tabla de métricas del summary con badge verde/rojo según mejora
-- `frontend/src/lib/components/predictions/MLStatusCard.svelte` — Card de estado del modelo: badge Activo/Sin modelo/No disponible, versión, accuracy, último entrenamiento, feedback pendiente, badge animado "Reentrenando"
-- `frontend/src/routes/(app)/predictions/+page.ts` — `ssr: false`
-- `frontend/src/routes/(app)/predictions/+page.svelte` — Página con `TabGroup` de 3 tabs: Predicciones (ForecastChart + selector meses) | Escenarios (ScenarioForm + ScenarioResultsChart grid) | Modelos ML (MLStatusCard); KPI cards del mes siguiente P50
-- `frontend/src/routes/(app)/+layout.svelte` — Actualizado enlace de navegación `/scenarios` → `/predictions` con label "Predicciones"
-- `frontend/tests/unit/predictions-api.test.ts` — 6 tests (getForecast meses default/custom, analyzeScenario POST body, gastos recurrentes, getMLStatus, errores)
-- `frontend/tests/unit/predictions-store.test.ts` — 8 tests (estado inicial, load paralelo, caché TTL, analyzeScenario, clearScenario, degradación parcial, error total, propagación error)
-- `frontend/tests/unit/scenario-form.test.ts` — 6 tests (valores por defecto, loading state, add/remove gastos, evento submit con variaciones)
-
-Con la **Fase 5.8** se han añadido:
-
-- `frontend/src/lib/types.ts` — Añadidos: `AccountType`, `AccountCreate`, `AccountUpdate`, `CategoryCreate`, `CategoryUpdate`, `TaxBracketResponse`, `TaxConfigCreate`, `TaxConfigUpdate`, `TaxConfigResponse`, `BracketBreakdown`, `TaxCalculationResponse`
-- `frontend/src/lib/api/categories.ts` — Ampliado con `createCategory`, `updateCategory`, `deleteCategory`
-- `frontend/src/lib/api/accounts.ts` — Ampliado con `createAccount`, `updateAccount`, `deleteAccount`
-- `frontend/src/lib/api/tax.ts` — 6 funciones: `getTaxBrackets`, `getTaxConfigs`, `createTaxConfig`, `updateTaxConfig`, `deleteTaxConfig`, `getTaxCalculation`
-- `frontend/src/lib/api/index.ts` — re-exporta `taxApi`
-- `frontend/src/lib/stores/settings.ts` — `settingsStore`: carga categorías + taxConfigs + taxBrackets en paralelo (Promise.allSettled), caché 60s, CRUD para categorías y taxConfigs, optimistic delete; derivados: `settingsCategories`, `settingsCustomCategories`, `settingsSystemCategories`, `settingsTaxConfigs`, `settingsTaxBrackets`, `settingsLoading`, `settingsError`
-- `frontend/src/lib/components/settings/ProfileSection.svelte` — Info del usuario (email, fecha registro) + gestión completa de cuentas bancarias (CRUD inline con formulario modal)
-- `frontend/src/lib/components/settings/CategoryRow.svelte` — Fila con badge "Sistema" para categorías del sistema (read-only) y botones editar/eliminar para categorías personalizadas
-- `frontend/src/lib/components/settings/CategoryForm.svelte` — Modal crear/editar: nombre, color picker hex, emoji/icono, categoría padre opcional
-- `frontend/src/lib/components/settings/TaxConfigCard.svelte` — Card por año fiscal: sueldo bruto, cálculo neto mensual lazy (bajo demanda), desglose por tramos IRPF
-- `frontend/src/lib/components/settings/TaxConfigForm.svelte` — Modal: año fiscal (select 2020-2030, filtra años ya configurados), sueldo bruto anual
-- `frontend/src/routes/(app)/settings/+page.ts` — `ssr: false`
-- `frontend/src/routes/(app)/settings/+page.svelte` — Página con `TabGroup` de 4 tabs: Perfil (ProfileSection) | Categorías (lista filtrable + CRUD) | Fiscal (TaxConfigCards + tabla de tramos) | Preferencias (LightSwitch + exportación CSV cliente)
-- `frontend/tests/unit/tax-api.test.ts` — 7 tests de API (sin filtros, con query params, create, update, delete, calculation con bracket_breakdown)
-- `frontend/tests/unit/settings-store.test.ts` — 8 tests del store (estado inicial, carga paralela, caché TTL, degradación parcial, createCategory, deleteCategory optimistic, createTaxConfig, deleteTaxConfig optimistic, filtros custom/sistema)
+Los módulos `utils/` financieros (TIR, VAN) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan completo.
 
 ## Validación con tests
 
-**Todo cambio o implementación debe ir acompañado de tests.** Antes de considerar cualquier tarea completada:
-
-1. Escribir o actualizar los tests que cubran el código modificado.
-2. Ejecutar los tests y verificar que todos pasan.
-3. No se considera terminada ninguna implementación si no tiene tests que la validen.
+**Todo cambio debe ir acompañado de tests.** No se considera terminada ninguna implementación sin tests que la validen.
 
 ```bash
-# Ejecutar tests tras cada cambio
 docker compose -f docker-compose.dev.yml exec backend pytest --cov=app -v
 ```
 
 ## Documentación
 
-Con cada cambio significativo o al completar una fase del roadmap, actualizar:
+Con cada cambio significativo actualizar:
 
 - `Docs/ARCHITECTURE.md` — si cambia el stack, modelos de datos, endpoints o estrategia ML
 - `Docs/ROADMAP.md` — marcar fases completadas y ajustar las siguientes
@@ -437,4 +126,4 @@ Con cada cambio significativo o al completar una fase del roadmap, actualizar:
 - Variables de entorno en `.env` (copiar desde `.env.example`). La clase `Settings` en `config.py` las carga automáticamente.
 - Ruff con `line-length = 100`, target Python 3.12, reglas: E, F, I, N, W, UP, B, SIM.
 - pytest con `asyncio_mode = "auto"`, tests en `backend/tests/`.
-- Documentación de arquitectura detallada en `Docs/ARCHITECTURE.md`; plan de desarrollo en `Docs/ROADMAP.md`.
+- Documentación detallada en `Docs/ARCHITECTURE.md`; plan de desarrollo en `Docs/ROADMAP.md`.
