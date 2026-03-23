@@ -160,6 +160,14 @@ async def get_transactions(
         query = query.where(Transaction.amount >= filters.min_amount)
     if filters.max_amount is not None:
         query = query.where(Transaction.amount <= filters.max_amount)
+    if filters.search is not None and filters.search.strip():
+        term = f"%{filters.search.strip()}%"
+        query = query.where(
+            or_(
+                Transaction.description.ilike(term),
+                Transaction.notes.ilike(term),
+            )
+        )
 
     count_result = await db.execute(
         select(func.count()).select_from(query.subquery())

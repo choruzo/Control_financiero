@@ -13,6 +13,9 @@
 	let categoryId = filters.category_id ?? '';
 	let accountId = filters.account_id ?? '';
 	let transactionType = filters.transaction_type ?? '';
+	let searchText = filters.search ?? '';
+
+	let searchTimeout: ReturnType<typeof setTimeout>;
 
 	function apply() {
 		const newFilters: TransactionFilters = { page: 1, per_page: filters.per_page ?? 50 };
@@ -21,7 +24,13 @@
 		if (categoryId) newFilters.category_id = categoryId;
 		if (accountId) newFilters.account_id = accountId;
 		if (transactionType) newFilters.transaction_type = transactionType as TransactionType;
+		if (searchText.trim()) newFilters.search = searchText.trim();
 		dispatch('change', newFilters);
+	}
+
+	function onSearchInput() {
+		clearTimeout(searchTimeout);
+		searchTimeout = setTimeout(apply, 400);
 	}
 
 	function clear() {
@@ -30,15 +39,27 @@
 		categoryId = '';
 		accountId = '';
 		transactionType = '';
+		searchText = '';
 		dispatch('change', { page: 1, per_page: filters.per_page ?? 50 });
 	}
 
-	const hasActiveFilters =
-		dateFrom || dateTo || categoryId || accountId || transactionType;
+	$: hasActiveFilters = !!(dateFrom || dateTo || categoryId || accountId || transactionType || searchText);
 </script>
 
 <div class="card p-4 mb-4">
 	<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 items-end">
+		<!-- Búsqueda de texto -->
+		<label class="label lg:col-span-2">
+			<span class="text-xs text-surface-400">Buscar descripción</span>
+			<input
+				type="search"
+				class="input input-sm"
+				placeholder="ej: nómina, mercadona…"
+				bind:value={searchText}
+				on:input={onSearchInput}
+			/>
+		</label>
+
 		<!-- Fecha inicio -->
 		<label class="label">
 			<span class="text-xs text-surface-400">Desde</span>

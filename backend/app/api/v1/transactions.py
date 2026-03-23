@@ -73,6 +73,7 @@ async def list_transactions(
     transaction_type: TransactionType | None = Query(None),
     min_amount: Decimal | None = Query(None),
     max_amount: Decimal | None = Query(None),
+    search: str | None = Query(None, description="Buscar en descripción y notas"),
     page: int = Query(1, ge=1),
     per_page: int = Query(50, ge=1, le=200),
     current_user: User = Depends(get_current_user),
@@ -87,6 +88,7 @@ async def list_transactions(
         transaction_type=transaction_type,
         min_amount=min_amount,
         max_amount=max_amount,
+        search=search,
     )
     items, total = await transactions_service.get_transactions(
         db, current_user.id, filters, page, per_page

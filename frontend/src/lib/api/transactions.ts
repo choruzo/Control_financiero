@@ -17,6 +17,7 @@ export async function getTransactions(
 	if (filters.category_id) params.set('category_id', filters.category_id);
 	if (filters.account_id) params.set('account_id', filters.account_id);
 	if (filters.transaction_type) params.set('transaction_type', filters.transaction_type);
+	if (filters.search) params.set('search', filters.search);
 	if (filters.page) params.set('page', String(filters.page));
 	if (filters.per_page) params.set('per_page', String(filters.per_page));
 

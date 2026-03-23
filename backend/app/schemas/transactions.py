@@ -73,6 +73,7 @@ class TransactionFilters(BaseModel):
     transaction_type: TransactionType | None = None
     min_amount: Decimal | None = None
     max_amount: Decimal | None = None
+    search: str | None = None
 
 
 class PaginatedTransactions(BaseModel):

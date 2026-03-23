@@ -82,11 +82,12 @@ function createTransactionsStore() {
 		}));
 	}
 
-	/** Actualiza filtros, resetea a página 1 y recarga. */
+	/** Actualiza filtros, resetea a página 1 y recarga.
+	 *  Reemplaza los filtros completos (no mezcla) para que quitar un filtro funcione correctamente. */
 	async function setFilters(newFilters: Partial<TransactionFilters>): Promise<void> {
 		update((s) => ({
 			...s,
-			filters: { ...s.filters, ...newFilters, page: 1 },
+			filters: { per_page: s.filters.per_page ?? DEFAULT_FILTERS.per_page, ...newFilters, page: 1 },
 			lastFetched: null // Invalidar cache
 		}));
 		await load(true);

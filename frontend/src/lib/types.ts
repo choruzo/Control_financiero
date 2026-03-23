@@ -224,6 +224,7 @@ export interface TransactionFilters {
 	category_id?: string;
 	account_id?: string;
 	transaction_type?: TransactionType;
+	search?: string;
 	page?: number;
 	per_page?: number;
 }
