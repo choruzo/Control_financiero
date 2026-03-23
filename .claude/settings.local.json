@@ -60,7 +60,13 @@
       "Bash(npm run:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(docker info:*)",
+      "Bash(docker system:*)",
+      "Bash(cmd.exe /c \"dir /s /b C:\\\\Users\\\\javie\\\\AppData\\\\Local\\\\Docker\\\\wsl\")",
+      "Bash(cmd.exe /c \"dir C:\\\\Users\\\\javie\\\\AppData\\\\Local\\\\Docker\\\\wsl\")",
+      "Bash(powershell.exe -Command \"Get-ChildItem 'C:\\\\Users\\\\javie\\\\AppData\\\\Local\\\\Docker\\\\wsl' -Recurse | Select-Object FullName, Length\")",
+      "Bash(python3 -m json.tool)"
     ]
   }
 }
