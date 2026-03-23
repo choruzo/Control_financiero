@@ -26,7 +26,7 @@
 		{ href: '/budgets', icon: '📋', label: 'Presupuestos' },
 		{ href: '/investments', icon: '📈', label: 'Inversiones' },
 		{ href: '/mortgage', icon: '🏠', label: 'Hipoteca' },
-		{ href: '/scenarios', icon: '🔮', label: 'Escenarios' },
+		{ href: '/predictions', icon: '🔮', label: 'Predicciones' },
 		{ href: '/settings', icon: '⚙️', label: 'Configuración' }
 	];
 

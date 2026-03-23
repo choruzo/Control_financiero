@@ -451,6 +451,94 @@ export interface AIAffordabilityResponse {
 	model_used: string;
 }
 
+// ── Predictions & Scenarios ───────────────────────────────────────────────────
+export interface ForecastMonth {
+	year: number;
+	month: number;
+	income_p10: number;
+	income_p50: number;
+	income_p90: number;
+	expenses_p10: number;
+	expenses_p50: number;
+	expenses_p90: number;
+	net_p10: number;
+	net_p50: number;
+	net_p90: number;
+}
+
+export interface CashflowForecast {
+	predictions: ForecastMonth[];
+	model_used: string;
+	model_version: string;
+	historical_months_used: number;
+	ml_available: boolean;
+}
+
+export interface RecurringExpenseModification {
+	description: string;
+	monthly_amount: number;
+	action: 'add' | 'remove';
+}
+
+export interface ScenarioRequest {
+	name?: string;
+	months_ahead?: number;
+	salary_variation_pct?: number;
+	euribor_variation_pct?: number;
+	recurring_expense_modifications?: RecurringExpenseModification[];
+	gross_annual?: number;
+	tax_year?: number;
+	monte_carlo_simulations?: number;
+}
+
+export interface ScenarioMonthResult {
+	year: number;
+	month: number;
+	base_income: number;
+	base_expenses: number;
+	base_net: number;
+	scenario_income: number;
+	scenario_expenses: number;
+	scenario_net_p10: number;
+	scenario_net_p50: number;
+	scenario_net_p90: number;
+	tax_monthly_base: number | null;
+	tax_monthly_scenario: number | null;
+	tax_monthly_delta: number | null;
+}
+
+export interface ScenarioSummary {
+	period_months: number;
+	total_base_net: number;
+	total_scenario_net_p50: number;
+	total_net_improvement: number;
+	total_net_improvement_p10: number;
+	total_net_improvement_p90: number;
+	avg_monthly_improvement: number;
+	net_improvement_pct: number | null;
+	total_tax_impact: number | null;
+}
+
+export interface ScenarioResponse {
+	name: string;
+	parameters: ScenarioRequest;
+	monthly_results: ScenarioMonthResult[];
+	summary: ScenarioSummary;
+	mortgage_impact_per_month: number | null;
+	historical_months_used: number;
+	ml_available: boolean;
+}
+
+export interface MLModelStatus {
+	loaded: boolean;
+	version: string | null;
+	accuracy: number | null;
+	last_trained: string | null;
+	feedback_count: number;
+	retrain_in_progress: boolean;
+	ml_available: boolean;
+}
+
 // ── Dashboard agregado ────────────────────────────────────────────────────────
 export interface DashboardData {
 	overview: OverviewData;

@@ -220,11 +220,11 @@ updated: 2026-03-22
 - [x] Capacidad máxima de hipoteca basada en tus datos reales
 - [x] CRUD de simulaciones guardadas
 
-### 5.7 Predicciones y Escenarios
-- [ ] Gráfico de predicción de cashflow (con bandas de confianza)
-- [ ] Formulario de "¿qué pasa si...?" con sliders
-- [ ] Resultados del escenario vs. situación actual
-- [ ] Estado y métricas de los modelos ML
+### 5.7 Predicciones y Escenarios ✅
+- [x] Gráfico de predicción de cashflow (con bandas de confianza)
+- [x] Formulario de "¿qué pasa si...?" con sliders
+- [x] Resultados del escenario vs. situación actual
+- [x] Estado y métricas de los modelos ML
 
 ### 5.8 Configuración
 - [ ] Perfil de usuario

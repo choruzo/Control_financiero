@@ -376,6 +376,23 @@ Con la **Fase 5.6** se han añadido:
 - `frontend/tests/unit/mortgage-api.test.ts` — 8 tests de API (POST simulate/compare, GET affordability con y sin taxConfigId, CRUD simulaciones, error DELETE)
 - `frontend/tests/unit/mortgage-store.test.ts` — 8 tests del store (estado inicial, load, caché TTL, simulate, compare, affordability, save, delete optimistic)
 
+Con la **Fase 5.7** se han añadido:
+
+- `frontend/src/lib/types.ts` — Añadidos 8 tipos de predicciones: `ForecastMonth`, `CashflowForecast`, `RecurringExpenseModification`, `ScenarioRequest`, `ScenarioMonthResult`, `ScenarioSummary`, `ScenarioResponse`, `MLModelStatus`
+- `frontend/src/lib/api/predictions.ts` — 3 funciones: `getForecast(months?)` → `GET /analytics/forecast`, `analyzeScenario(request)` → `POST /scenarios/analyze`, `getMLStatus()` → `GET /ml/status`
+- `frontend/src/lib/api/index.ts` — re-exporta `predictionsApi`
+- `frontend/src/lib/stores/predictions.ts` — `predictionsStore`: carga forecast + mlStatus en paralelo (Promise.allSettled), caché 60s, métodos: `load`, `analyzeScenario` (sets `isCalculating`), `clearScenario`; derivados: `predictionsLoading`, `predictionsCalculating`, `predictionsError`, `forecastData`, `scenarioData`, `mlStatusData`
+- `frontend/src/lib/components/predictions/ForecastChart.svelte` — ECharts líneas P50 con bandas de confianza P10/P90 semitransparentes (área apilada invisible+visible), colores verde/rojo, ResizeObserver
+- `frontend/src/lib/components/predictions/ScenarioForm.svelte` — Formulario con sliders: sueldo (-50%/+100%), Euríbor (-2/+5pp), meses (1-24); lista dinámica de gastos recurrentes (add/remove); sección fiscal opcional (gross_annual, tax_year); selector Monte Carlo simulations
+- `frontend/src/lib/components/predictions/ScenarioResultsChart.svelte` — ECharts barras agrupadas (baseline azul vs escenario naranja P50) con banda P10/P90; tabla de métricas del summary con badge verde/rojo según mejora
+- `frontend/src/lib/components/predictions/MLStatusCard.svelte` — Card de estado del modelo: badge Activo/Sin modelo/No disponible, versión, accuracy, último entrenamiento, feedback pendiente, badge animado "Reentrenando"
+- `frontend/src/routes/(app)/predictions/+page.ts` — `ssr: false`
+- `frontend/src/routes/(app)/predictions/+page.svelte` — Página con `TabGroup` de 3 tabs: Predicciones (ForecastChart + selector meses) | Escenarios (ScenarioForm + ScenarioResultsChart grid) | Modelos ML (MLStatusCard); KPI cards del mes siguiente P50
+- `frontend/src/routes/(app)/+layout.svelte` — Actualizado enlace de navegación `/scenarios` → `/predictions` con label "Predicciones"
+- `frontend/tests/unit/predictions-api.test.ts` — 6 tests (getForecast meses default/custom, analyzeScenario POST body, gastos recurrentes, getMLStatus, errores)
+- `frontend/tests/unit/predictions-store.test.ts` — 8 tests (estado inicial, load paralelo, caché TTL, analyzeScenario, clearScenario, degradación parcial, error total, propagación error)
+- `frontend/tests/unit/scenario-form.test.ts` — 6 tests (valores por defecto, loading state, add/remove gastos, evento submit con variaciones)
+
 ## Validación con tests
 
 **Todo cambio o implementación debe ir acompañado de tests.** Antes de considerar cualquier tarea completada:
