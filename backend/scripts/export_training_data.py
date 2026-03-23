@@ -164,7 +164,8 @@ def main(output_path: str) -> None:
 
     rows = asyncio.run(fetch_rows())
 
-    examples = []
+    # Raw examples before deduplication
+    raw_examples = []
     skipped = 0
     for description, category_name in rows:
         # Excluir categorías no mapeadas
@@ -184,7 +185,39 @@ def main(output_path: str) -> None:
             skipped += 1
             continue
 
-        examples.append({"text": normalized, "label": ml_label})
+        raw_examples.append({"text": normalized, "label": ml_label})
+
+    # Deduplication: max MAX_EXACT_DUPS per identical text, max MAX_MERCHANT per merchant prefix
+    MAX_EXACT_DUPS = 3    # máximo de textos idénticos
+    MAX_MERCHANT = 8      # máximo por prefijo de comercio (primeras 2 palabras)
+
+    from collections import defaultdict
+
+    exact_counts: dict[str, int] = defaultdict(int)
+    merchant_counts: dict[str, int] = defaultdict(int)
+    examples = []
+
+    for ex in raw_examples:
+        text = ex["text"]
+        label = ex["label"]
+
+        # Clave exacta (text + label)
+        exact_key = f"{text}|{label}"
+        if exact_counts[exact_key] >= MAX_EXACT_DUPS:
+            skipped += 1
+            continue
+        exact_counts[exact_key] += 1
+
+        # Clave de comercio: primeras 2 palabras del texto
+        words = text.split()
+        merchant_prefix = " ".join(words[:2]) if len(words) >= 2 else text
+        merchant_key = f"{merchant_prefix}|{label}"
+        if merchant_counts[merchant_key] >= MAX_MERCHANT:
+            skipped += 1
+            continue
+        merchant_counts[merchant_key] += 1
+
+        examples.append(ex)
 
     Path(output_path).write_text(json.dumps(examples, ensure_ascii=False, indent=2), encoding="utf-8")
 

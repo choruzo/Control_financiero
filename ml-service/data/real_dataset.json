@@ -1,0 +1,886 @@
+[
+  {
+    "text": "DELIKIA SP",
+    "label": "Alimentación"
+  },
+  {
+    "text": "DELIKIA SP",
+    "label": "Alimentación"
+  },
+  {
+    "text": "DELIKIA SP",
+    "label": "Alimentación"
+  },
+  {
+    "text": "GRUPO KABOSER S L",
+    "label": "Alimentación"
+  },
+  {
+    "text": "PNP Vending Orain",
+    "label": "Alimentación"
+  },
+  {
+    "text": "PNP Vending Orain",
+    "label": "Alimentación"
+  },
+  {
+    "text": "PNP Vending Orain",
+    "label": "Alimentación"
+  },
+  {
+    "text": "COMPRA EN CUCURUCHO AZCA",
+    "label": "Alimentación"
+  },
+  {
+    "text": "COMPRA EN SANSECAFE SL",
+    "label": "Alimentación"
+  },
+  {
+    "text": "COMPRA EN SANSECAFE SL",
+    "label": "Alimentación"
+  },
+  {
+    "text": "BICICLETAS PANORAMA",
+    "label": "Ocio"
+  },
+  {
+    "text": "PZES",
+    "label": "Ocio"
+  },
+  {
+    "text": "PZES",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME 0AB78 Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME 1A02F ES",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME 263EC Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME 2E476 Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME 4A0E5 Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME 594F2 Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME 63C65 Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME 66E32 ES",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME 84CFE Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME AA787 Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME ACBF9 Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME C38AE ES",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME C7F3A Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME D6591 Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME DCDAB Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME E9E74 Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME EF7C0 Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME X6108 ES",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME X7166 Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "SKYSHOWTIME X9875 Esta",
+    "label": "Ocio"
+  },
+  {
+    "text": "STEAMGAMES COM",
+    "label": "Ocio"
+  },
+  {
+    "text": "SkyShowtime Limited",
+    "label": "Ocio"
+  },
+  {
+    "text": "SkyShowtime Limited",
+    "label": "Ocio"
+  },
+  {
+    "text": "SkyShowtime Limited",
+    "label": "Ocio"
+  },
+  {
+    "text": "VIP DISTRICT VIRTUAL",
+    "label": "Ocio"
+  },
+  {
+    "text": "VIP DISTRICT VIRTUAL",
+    "label": "Ocio"
+  },
+  {
+    "text": "WWW CINESA ES",
+    "label": "Ocio"
+  },
+  {
+    "text": "COMPRA EN IKEA LEGANES FOOD",
+    "label": "Hogar"
+  },
+  {
+    "text": "TRANSFERENCIA A FAVOR DE Aquazel SL CONCEPTO Acuario Javier Martin",
+    "label": "Hogar"
+  },
+  {
+    "text": "DESCARGA TARJETA PREPAGO",
+    "label": "Ingresos"
+  },
+  {
+    "text": "INGRESO EN EFECTIVO",
+    "label": "Ingresos"
+  },
+  {
+    "text": "INGRESO EN EFECTIVO",
+    "label": "Ingresos"
+  },
+  {
+    "text": "SU ORDEN DE IMPOSICION",
+    "label": "Ingresos"
+  },
+  {
+    "text": "SU ORDEN DE IMPOSICION",
+    "label": "Ingresos"
+  },
+  {
+    "text": "SU ORDEN DE IMPOSICION",
+    "label": "Ingresos"
+  },
+  {
+    "text": "IMPORTE PROCEDENTE DE CUENTA A PLAZO 0073 0100 302",
+    "label": "Ingresos"
+  },
+  {
+    "text": "IMPORTE PROCEDENTE DE CUENTA A PLAZO 0073 0100 302",
+    "label": "Ingresos"
+  },
+  {
+    "text": "IMPORTE PROCEDENTE DE CUENTA A PLAZO 0073 0100 302",
+    "label": "Ingresos"
+  },
+  {
+    "text": "0073 0100 302 0073 0100 302",
+    "label": "Ingresos"
+  },
+  {
+    "text": "0073 0100 302 0073 0100 302",
+    "label": "Ingresos"
+  },
+  {
+    "text": "0073 0100 302 0073 0100 302",
+    "label": "Ingresos"
+  },
+  {
+    "text": "TRANSFERENCIA DE INDRA ESPACIO SLU CONCEPTO Sueldo Salar00703949",
+    "label": "Ingresos"
+  },
+  {
+    "text": "TRANSFERENCIA DE INDRA ESPACIO SLU CONCEPTO Sueldo Salar00703949",
+    "label": "Ingresos"
+  },
+  {
+    "text": "TRANSFERENCIA DE INDRA ESPACIO SLU CONCEPTO Sueldo Salar00703949",
+    "label": "Ingresos"
+  },
+  {
+    "text": "TRANSFERENCIA DE Indra Sistemas S A CONCEPTO Sueldo Salar00703949",
+    "label": "Ingresos"
+  },
+  {
+    "text": "TRANSFERENCIA DE Indra Sistemas S A CONCEPTO Sueldo Salar00703949",
+    "label": "Ingresos"
+  },
+  {
+    "text": "TRANSFERENCIA DE Indra Sistemas S A CONCEPTO Sueldo Salar00703949",
+    "label": "Ingresos"
+  },
+  {
+    "text": "ABONO EN LA TARJETA EL",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM A FAVOR DE BELINDA D L CONCEPTO Sin concepto",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM A FAVOR DE CONCEPCION ESPADA BALLESTEROS CONCEPTO Sin concepto",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM A FAVOR DE ELENA LEIVA GARCIA DEL CASTILLO CONCEPTO Regalo guillem Javi",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM A FAVOR DE ELENA LEIVA GARCIA DEL CASTILLO CONCEPTO regalo jose javi",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM A FAVOR DE ELENA LEIVA GARCIA DEL CASTILLO CONCEPTO regalo moises javi",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM A FAVOR DE Fernando Nunez Correas CONCEPTO Regalo Daniel jmartinb",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM A FAVOR DE MOISES V M CONCEPTO Sin concepto",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM A FAVOR DE Maria R P CONCEPTO Sin concepto",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM DE CONCEPCION ESPADA BALLESTE CONCEPTO Sin concepto",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM DE CONCEPCION ESPADA BALLESTEROS CONCEPTO Café",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM DE FRANCISCO J M CONCEPTO Sin concepto",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM DE FRANCISCO J M CONCEPTO Sin concepto",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM DE FRANCISCO J M CONCEPTO Sin concepto",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM DE FRANCISCO JAVIER MARTIN PE CONCEPTO Sin concepto",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM DE FRANCISCO JAVIER MARTIN PENA CONCEPTO Sin concepto",
+    "label": "Otros"
+  },
+  {
+    "text": "BIZUM DE FRANCISCO JAVIER MARTIN PENA CONCEPTO Sin concepto",
+    "label": "Otros"
+  },
+  {
+    "text": "AEROPUERTO LANZAROTE AIRE",
+    "label": "Otros"
+  },
+  {
+    "text": "AGRUPACION COOP VALLE",
+    "label": "Otros"
+  },
+  {
+    "text": "ALIPAY",
+    "label": "Otros"
+  },
+  {
+    "text": "ALIPAY",
+    "label": "Otros"
+  },
+  {
+    "text": "ALIPAY",
+    "label": "Otros"
+  },
+  {
+    "text": "AMZN Mktp ES S06M53DC5",
+    "label": "Otros"
+  },
+  {
+    "text": "AMZN Mktp ES YE5YG8LR5",
+    "label": "Otros"
+  },
+  {
+    "text": "ARAGON 20",
+    "label": "Otros"
+  },
+  {
+    "text": "COSTCO WHOLESALE SPAIN S",
+    "label": "Otros"
+  },
+  {
+    "text": "COVRIGARIA B879",
+    "label": "Otros"
+  },
+  {
+    "text": "EL CORTE INGLES EL BERCIA",
+    "label": "Otros"
+  },
+  {
+    "text": "Gaijin Games",
+    "label": "Otros"
+  },
+  {
+    "text": "LAS VENTAS DE VELAZQUEZ",
+    "label": "Otros"
+  },
+  {
+    "text": "MNE 95016835Moneynet_S",
+    "label": "Otros"
+  },
+  {
+    "text": "MNE 95017737Moneynet_S",
+    "label": "Otros"
+  },
+  {
+    "text": "MNE 95017737Moneynet_S",
+    "label": "Otros"
+  },
+  {
+    "text": "MNE 95017737Moneynet_S",
+    "label": "Otros"
+  },
+  {
+    "text": "MNE 95018187Moneynet_S",
+    "label": "Otros"
+  },
+  {
+    "text": "MNE 95018187Moneynet_S",
+    "label": "Otros"
+  },
+  {
+    "text": "MNE 95018187Moneynet_S",
+    "label": "Otros"
+  },
+  {
+    "text": "NASCAPERS",
+    "label": "Otros"
+  },
+  {
+    "text": "PLYKIT",
+    "label": "Otros"
+  },
+  {
+    "text": "SPAY LATAM SERVICIOS DE P",
+    "label": "Otros"
+  },
+  {
+    "text": "SPAY LATAM SERVICIOS DE P",
+    "label": "Otros"
+  },
+  {
+    "text": "TIENDA PZES ES",
+    "label": "Otros"
+  },
+  {
+    "text": "TULOTERO",
+    "label": "Otros"
+  },
+  {
+    "text": "papajohns es 069dc7f84",
+    "label": "Otros"
+  },
+  {
+    "text": "COMPRA EN CARREF GETAFE",
+    "label": "Otros"
+  },
+  {
+    "text": "COMPRA EN CHURRERIA MADRID 1883",
+    "label": "Otros"
+  },
+  {
+    "text": "COMPRA EN MAXIDECOR",
+    "label": "Otros"
+  },
+  {
+    "text": "TRANSFERENCIA A FAVOR DE MARTIN BARROSO JAVIER",
+    "label": "Otros"
+  },
+  {
+    "text": "TRANSFERENCIA A FAVOR DE MARTIN BARROSO JAVIER",
+    "label": "Otros"
+  },
+  {
+    "text": "TRANSFERENCIA A FAVOR DE MARTIN BARROSO JAVIER",
+    "label": "Otros"
+  },
+  {
+    "text": "TRANSFERENCIA DE MARTIN BARROSO JAVIER CONCEPTO",
+    "label": "Otros"
+  },
+  {
+    "text": "TRANSFERENCIA DE MARTIN BARROSO JAVIER CONCEPTO",
+    "label": "Otros"
+  },
+  {
+    "text": "TRANSFERENCIA DE MARTIN BARROSO JAVIER CONCEPTO",
+    "label": "Otros"
+  },
+  {
+    "text": "TRANSFERENCIA DE MARTIN BARROSO JAVIER CONCEPTO Depósito",
+    "label": "Otros"
+  },
+  {
+    "text": "TRANSFERENCIA DE TULOTERO APP S L CONCEPTO Pago BA01JI67PE65 GMAIL COM - TuLotero",
+    "label": "Otros"
+  },
+  {
+    "text": "SANTA JULIA",
+    "label": "Alimentación"
+  },
+  {
+    "text": "SANTA JULIA",
+    "label": "Alimentación"
+  },
+  {
+    "text": "SANTA JULIA",
+    "label": "Alimentación"
+  },
+  {
+    "text": "Santa Julia",
+    "label": "Alimentación"
+  },
+  {
+    "text": "Santa Julia",
+    "label": "Alimentación"
+  },
+  {
+    "text": "TRIGAL PELUQUEROS",
+    "label": "Ropa y calzado"
+  },
+  {
+    "text": "TRIGAL PELUQUEROS",
+    "label": "Ropa y calzado"
+  },
+  {
+    "text": "TRIGAL PELUQUEROS",
+    "label": "Ropa y calzado"
+  },
+  {
+    "text": "COMPRA EN TRIGAL PELUQUEROS",
+    "label": "Ropa y calzado"
+  },
+  {
+    "text": "COMPRA EN TRIGAL PELUQUEROS",
+    "label": "Ropa y calzado"
+  },
+  {
+    "text": "COMPRA EN TRIGAL PELUQUEROS",
+    "label": "Ropa y calzado"
+  },
+  {
+    "text": "CLINICA DENTAL SAN JOSE",
+    "label": "Salud"
+  },
+  {
+    "text": "FARMACIA M J TENORIO",
+    "label": "Salud"
+  },
+  {
+    "text": "FARMACIA M J TENORIO",
+    "label": "Salud"
+  },
+  {
+    "text": "LIVI ESTILISTAS",
+    "label": "Salud"
+  },
+  {
+    "text": "COMPRA EN LIVI ESTILISTAS",
+    "label": "Salud"
+  },
+  {
+    "text": "COMPRA EN LIVI ESTILISTAS",
+    "label": "Salud"
+  },
+  {
+    "text": "SIMYO",
+    "label": "Hogar"
+  },
+  {
+    "text": "SIMYO",
+    "label": "Hogar"
+  },
+  {
+    "text": "SIMYO",
+    "label": "Hogar"
+  },
+  {
+    "text": "BIZUM DE VICTOR F G CONCEPTO Bolt",
+    "label": "Transporte"
+  },
+  {
+    "text": "CABIFY ESPA A SL",
+    "label": "Transporte"
+  },
+  {
+    "text": "Cabify ES 2542B9QRMvDX",
+    "label": "Transporte"
+  },
+  {
+    "text": "Cabify ES 2544VmhsR4dB",
+    "label": "Transporte"
+  },
+  {
+    "text": "Cabify ES",
+    "label": "Transporte"
+  },
+  {
+    "text": "Cabify ES",
+    "label": "Transporte"
+  },
+  {
+    "text": "Cabify ES",
+    "label": "Transporte"
+  },
+  {
+    "text": "UBER EATS",
+    "label": "Transporte"
+  },
+  {
+    "text": "BIZUM DE MACRINA BARROSO JIMENEZ CONCEPTO AMAZON",
+    "label": "Tecnología"
+  },
+  {
+    "text": "BIZUM DE MACRINA BARROSO JIMENEZ CONCEPTO Amazon",
+    "label": "Tecnología"
+  },
+  {
+    "text": "BIZUM DE MACRINA BARROSO JIMENEZ CONCEPTO compra en amazon",
+    "label": "Tecnología"
+  },
+  {
+    "text": "ALIEXPRESS",
+    "label": "Tecnología"
+  },
+  {
+    "text": "ALIEXPRESS COM",
+    "label": "Tecnología"
+  },
+  {
+    "text": "ALIEXPRESS COM",
+    "label": "Tecnología"
+  },
+  {
+    "text": "ALIEXPRESS COM",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON MEDI 859864S55",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON 1Y0D61KJ5",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON 2A7US4G05",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON 3675E3O15",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON 404--26",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON 404--53",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON 404--98",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON 404--76",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON 404--72",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON 404--55",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON 404--72",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON 404--59",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON 404--76",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON 404--91",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON LR11V2BX5",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON OJ8Q25VL5",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON OP6X100B5",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON R03LR78V4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON R67QF6U84",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON RB9RV9IY4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON RC2S614P4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON RC5QI40F4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON RJ2RY5EM4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON RK4ET6RZ4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON RS2X04DI4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON RZ6FX3CX4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON T66ZX68L4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON TE3LL1DK4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON TP0DG5BM4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON TP8BQ6WW4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON Y18N624L5",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON Z39OR5QR4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON Z85AO1M85",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON ZG3IW1UL4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON ZL9OF5YY4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON ZP1K30204",
+    "label": "Tecnología"
+  },
+  {
+    "text": "AMAZON ZT0DB5314",
+    "label": "Tecnología"
+  },
+  {
+    "text": "Amazon es CR4KZ5505",
+    "label": "Tecnología"
+  },
+  {
+    "text": "Ant ALIEXPRESS COM",
+    "label": "Tecnología"
+  },
+  {
+    "text": "HPI INSTANT INK SPAIN",
+    "label": "Tecnología"
+  },
+  {
+    "text": "HPI INSTANT INK SPAIN",
+    "label": "Tecnología"
+  },
+  {
+    "text": "HPI INSTANT INK SPAIN",
+    "label": "Tecnología"
+  },
+  {
+    "text": "Marketplace PCCom",
+    "label": "Tecnología"
+  },
+  {
+    "text": "PcComponentes",
+    "label": "Tecnología"
+  },
+  {
+    "text": "PcComponentes",
+    "label": "Tecnología"
+  },
+  {
+    "text": "PcComponentes",
+    "label": "Tecnología"
+  },
+  {
+    "text": "SP 3DFILS",
+    "label": "Tecnología"
+  },
+  {
+    "text": "WWW ALIEXPRESS COM",
+    "label": "Tecnología"
+  },
+  {
+    "text": "WWW ALIEXPRESS COM",
+    "label": "Tecnología"
+  },
+  {
+    "text": "WWW ALIEXPRESS COM",
+    "label": "Tecnología"
+  },
+  {
+    "text": "WWW AMAZON 404-",
+    "label": "Tecnología"
+  },
+  {
+    "text": "WWW AMAZON CO4FN23S5",
+    "label": "Tecnología"
+  },
+  {
+    "text": "WWW AMAZON EE0VY2CJ5",
+    "label": "Tecnología"
+  },
+  {
+    "text": "WWW AMAZON EV2817PK5",
+    "label": "Tecnología"
+  },
+  {
+    "text": "WWW AMAZON MB6VZ91D5",
+    "label": "Tecnología"
+  },
+  {
+    "text": "WWW AMAZON RC9D59WX4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "WWW AMAZON RH8979EZ4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "WWW AMAZON RM2PU74H4",
+    "label": "Tecnología"
+  },
+  {
+    "text": "aliexpress",
+    "label": "Tecnología"
+  },
+  {
+    "text": "aliexpress",
+    "label": "Tecnología"
+  },
+  {
+    "text": "aliexpress",
+    "label": "Tecnología"
+  },
+  {
+    "text": "METRO DE MADRID S A",
+    "label": "Transporte"
+  },
+  {
+    "text": "METRO DE MADRID",
+    "label": "Transporte"
+  },
+  {
+    "text": "RENFE CERCANIAS TNA 28 2",
+    "label": "Transporte"
+  },
+  {
+    "text": "RENFE CERCANIAS TNA 28 3",
+    "label": "Transporte"
+  },
+  {
+    "text": "RENFE CERCANIAS TNA 28 3",
+    "label": "Transporte"
+  },
+  {
+    "text": "RENFE CERCANIAS TNA 28 3",
+    "label": "Transporte"
+  },
+  {
+    "text": "RENFE VIAJEROS APP",
+    "label": "Transporte"
+  },
+  {
+    "text": "RENFE VIAJEROS APP",
+    "label": "Transporte"
+  },
+  {
+    "text": "RECARGA TARJETA PREPAGO",
+    "label": "Transporte"
+  },
+  {
+    "text": "COMPRA EN TVR EMV MADRID",
+    "label": "Transporte"
+  }
+]

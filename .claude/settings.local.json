@@ -82,7 +82,14 @@
       "Bash(docker ps:*)",
       "Bash(docker cp:*)",
       "Bash(docker volume:*)",
-      "mcp__chrome-devtools__get_network_request"
+      "mcp__chrome-devtools__get_network_request",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__new_page",
+      "mcp__chrome-devtools__upload_file",
+      "mcp__chrome-devtools__wait_for",
+      "Bash(timeout 4 ping -n 4 127.0.0.1)",
+      "mcp__chrome-devtools__get_console_message",
+      "Bash(timeout 3 ping -n 3 127.0.0.1)"
     ]
   }
 }
