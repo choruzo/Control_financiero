@@ -12,13 +12,15 @@
 	}>();
 
 	let taxYear = new Date().getFullYear();
-	let grossSalary = 0;
+	let grossSalary: number | undefined = undefined;
 	let saving = false;
 	let error = '';
+	let prevShow = false;
 
 	const availableYears = Array.from({ length: 11 }, (_, i) => 2020 + i);
 
-	$: if (show) {
+	// Only reset form when the modal transitions from closed → open
+	$: if (show && !prevShow) {
 		if (editingConfig) {
 			taxYear = editingConfig.tax_year;
 			grossSalary = editingConfig.gross_annual_salary;
@@ -26,13 +28,14 @@
 			// Seleccionar primer año no usado
 			const unusedYear = availableYears.find((y) => !existingYears.includes(y));
 			taxYear = unusedYear ?? new Date().getFullYear();
-			grossSalary = 0;
+			grossSalary = undefined;
 		}
 		error = '';
 	}
+	$: prevShow = show;
 
 	async function handleSubmit() {
-		if (grossSalary <= 0) {
+		if (!grossSalary || grossSalary <= 0) {
 			error = 'El sueldo bruto debe ser mayor que 0';
 			return;
 		}
@@ -80,8 +83,8 @@
 				<input
 					class="input"
 					type="number"
-					step="100"
-					min="0"
+					step="any"
+					min="1"
 					bind:value={grossSalary}
 					placeholder="35000"
 				/>
@@ -97,7 +100,7 @@
 				<button
 					class="btn variant-filled-primary"
 					on:click={handleSubmit}
-					disabled={saving || grossSalary <= 0}
+					disabled={saving || !grossSalary || grossSalary <= 0}
 				>
 					{saving ? 'Guardando…' : 'Guardar'}
 				</button>

@@ -382,8 +382,8 @@
 
 <TaxConfigForm
 	show={showTaxForm}
-	{editingTaxConfig}
-	{existingTaxYears}
+	editingConfig={editingTaxConfig}
+	existingYears={existingTaxYears}
 	on:save={handleTaxSave}
 	on:close={() => (showTaxForm = false)}
 />

@@ -68,7 +68,7 @@
 					{#if status.retrain_in_progress}
 						<span class="badge variant-filled-warning text-xs animate-pulse">Reentrenando...</span>
 					{:else}
-						<span class="text-surface-300">Inactivo</span>
+						<span class="text-surface-300">En espera</span>
 					{/if}
 				</dd>
 			</div>
