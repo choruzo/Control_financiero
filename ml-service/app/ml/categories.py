@@ -13,7 +13,7 @@ CATEGORIES: list[dict] = [
     {"index": 3, "name": "Hogar"},
     {"index": 4, "name": "Salud"},
     {"index": 5, "name": "Educación"},
-    {"index": 6, "name": "Ropa"},
+    {"index": 6, "name": "Ropa y calzado"},
     {"index": 7, "name": "Tecnología"},
     {"index": 8, "name": "Ingresos"},
     {"index": 9, "name": "Otros"},

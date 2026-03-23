@@ -31,7 +31,15 @@ from app.ml.trainer import (
 )
 
 
-def main(model_path: str, epochs: int, batch_size: int, device_override: str | None = None) -> None:
+def main(
+    model_path: str,
+    epochs: int,
+    batch_size: int,
+    device_override: str | None = None,
+    extra_data_path: str | None = None,
+) -> None:
+    import json
+
     import torch
 
     device = device_override or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -39,6 +47,25 @@ def main(model_path: str, epochs: int, batch_size: int, device_override: str | N
     print(f"Cargando dataset desde {DATASET_PATH}...")
 
     texts, labels = load_base_dataset()
+    print(f"Ejemplos sintéticos: {len(texts)}")
+
+    if extra_data_path:
+        extra_path = Path(extra_data_path)
+        if extra_path.exists():
+            extra_data = json.loads(extra_path.read_text(encoding="utf-8"))
+            from app.ml.categories import LABEL_TO_INDEX  # noqa: PLC0415
+
+            added = 0
+            for item in extra_data:
+                label_name = item.get("label", "")
+                if label_name in LABEL_TO_INDEX:
+                    texts.append(item["text"])
+                    labels.append(LABEL_TO_INDEX[label_name])
+                    added += 1
+            print(f"Ejemplos reales añadidos: {added}")
+        else:
+            print(f"AVISO: --extra-data {extra_data_path} no encontrado, ignorando.")
+
     print(f"Total ejemplos: {len(texts)}")
     counts = Counter(labels)
     print(f"Distribución de clases: {dict(sorted(counts.items()))}")
@@ -60,6 +87,10 @@ def main(model_path: str, epochs: int, batch_size: int, device_override: str | N
         batch_size=batch_size,
         device=device,
         current_version="0.9",
+        train_texts=train_texts,
+        train_labels=train_labels,
+        val_texts=val_texts,
+        val_labels=val_labels,
     )
 
     print(f"\nModelo guardado en {output_dir}")
@@ -70,9 +101,16 @@ def main(model_path: str, epochs: int, batch_size: int, device_override: str | N
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fine-tuning DistilBERT para categorización")
     parser.add_argument("--model-path", default="/app/models", help="Directorio de salida del modelo")
-    parser.add_argument("--epochs", type=int, default=3, help="Número de epochs de entrenamiento")
+    parser.add_argument("--epochs", type=int, default=10, help="Número de epochs de entrenamiento")
     parser.add_argument("--batch-size", type=int, default=16, help="Tamaño del batch")
     parser.add_argument("--device", default=None, help="Device: cpu o cuda (auto-detecta si no se indica)")
+    parser.add_argument("--extra-data", default=None, help="JSON con ejemplos reales adicionales")
     args = parser.parse_args()
 
-    main(model_path=args.model_path, epochs=args.epochs, batch_size=args.batch_size, device_override=args.device)
+    main(
+        model_path=args.model_path,
+        epochs=args.epochs,
+        batch_size=args.batch_size,
+        device_override=args.device,
+        extra_data_path=args.extra_data,
+    )

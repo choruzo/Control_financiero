@@ -8,6 +8,7 @@ import unicodedata
 # Ejemplos reales: "REC DOM 20260201 IBERDROLA", "TRF 20260115 NOMINA EMPRESA"
 _BANKING_PREFIXES = re.compile(
     r"^(?:"
+    r"Samsung\s+pay:\s*|"   # Samsung pay: COMPRA EN MERCADONA → COMPRA EN MERCADONA
     r"COMPRA\s+TRJ|"        # COMPRA TRJ 1234567890 MERCADONA → MERCADONA
     r"COBRO\s+TPV|"         # COBRO TPV 987654321 REPSOL → REPSOL
     r"REC\s+DOM|"           # REC DOM 20260201 IBERDROLA → IBERDROLA
@@ -21,8 +22,16 @@ _BANKING_PREFIXES = re.compile(
     r"ABONO\s+EN\s+CTA|"    # ABONO EN CTA
     r"CARGO\s+EN\s+CTA|"    # CARGO EN CTA
     r"PAGO\s+CON\s+TRJ|"    # PAGO CON TRJ
-    r"COMPRA\s+ON[\s-]?LINE\s+" # COMPRA ON LINE / COMPRA ONLINE
+    r"COMPRA\s+ON[\s-]?LINE\s+|" # COMPRA ON LINE / COMPRA ONLINE
+    r"COMPRA\s+EN\s+"       # COMPRA EN MERCADONA → MERCADONA (formato OpenBank)
     r")\s*",
+    re.IGNORECASE,
+)
+
+# Sufijo de referencia de tarjeta OpenBank: ", CON LA TARJETA : 1234567890 EL"
+# Se elimina antes del resto de la normalización para limpiar el ruido.
+_OPENBANK_CARD_SUFFIX = re.compile(
+    r",?\s*CON\s+LA\s+TARJETA\s*:?\s*\d*\s*EL\s*",
     re.IGNORECASE,
 )
 
@@ -45,22 +54,27 @@ def normalize_banking_text(text: str) -> str:
     # 1. Normalizar Unicode
     text = unicodedata.normalize("NFC", text)
 
-    # 2. Eliminar prefijos operacionales bancarios al inicio del concepto
+    # 2. Eliminar sufijo de referencia de tarjeta OpenBank antes de normalizar
+    #    Ej: "RENFE CERCANIAS, CON LA TARJETA : 1234567890 EL 2026-02-23"
+    #    → "RENFE CERCANIAS"
+    text = _OPENBANK_CARD_SUFFIX.sub(" ", text)
+
+    # 3. Eliminar prefijos operacionales bancarios al inicio del concepto
     text = _BANKING_PREFIXES.sub("", text)
 
-    # 3. Eliminar fechas compactas sin separador (YYYYMMDD, ej: 20260115)
+    # 4. Eliminar fechas compactas sin separador (YYYYMMDD, ej: 20260115)
     text = re.sub(r"\b20\d{6}\b", " ", text)
 
-    # 4. Eliminar fechas con separador (DD/MM/YYYY, YYYY-MM-DD, etc.)
+    # 5. Eliminar fechas con separador (DD/MM/YYYY, YYYY-MM-DD, etc.)
     text = re.sub(r"\b\d{1,4}[/-]\d{1,2}[/-]\d{2,4}\b", " ", text)
 
-    # 5. Eliminar referencias numéricas largas (≥6 dígitos seguidos)
+    # 6. Eliminar referencias numéricas largas (≥6 dígitos seguidos)
     text = re.sub(r"\b\d{6,}\b", " ", text)
 
-    # 6. Reemplazar caracteres no alfanuméricos (salvo espacios) por espacio
+    # 7. Reemplazar caracteres no alfanuméricos (salvo espacios) por espacio
     text = re.sub(r"[^\w\s]", " ", text)
 
-    # 7. Colapsar espacios múltiples
+    # 8. Colapsar espacios múltiples
     text = re.sub(r"\s+", " ", text).strip()
 
     return text

@@ -166,12 +166,19 @@ def run_incremental_retrain(
     device: str = "cpu",
     base_dataset_path: Path = DATASET_PATH,
     current_version: str = "1.0",
+    train_texts: list[str] | None = None,
+    train_labels: list[int] | None = None,
+    val_texts: list[str] | None = None,
+    val_labels: list[int] | None = None,
 ) -> dict:
     """
     Ejecuta reentrenamiento incremental del modelo.
 
     Parte del modelo activo (source_model_path) para preservar el conocimiento
     previo. Si el modelo activo no existe, cae back al BASE_MODEL de HuggingFace.
+
+    Si se proporcionan train_texts/train_labels/val_texts/val_labels, se usan
+    directamente en lugar de construir el dataset internamente.
 
     Args:
         source_model_path: Directorio del modelo activo (punto de partida).
@@ -182,6 +189,10 @@ def run_incremental_retrain(
         device: "cpu" o "cuda".
         base_dataset_path: Dataset base sintético.
         current_version: Versión del modelo activo para calcular la nueva.
+        train_texts: Textos de entrenamiento pre-construidos (opcional).
+        train_labels: Etiquetas de entrenamiento pre-construidas (opcional).
+        val_texts: Textos de validación pre-construidos (opcional).
+        val_labels: Etiquetas de validación pre-construidas (opcional).
 
     Returns:
         dict con: version, accuracy, train_examples, val_examples, trained_at, device
@@ -196,8 +207,9 @@ def run_incremental_retrain(
         model_source = BASE_MODEL
         logger.warning("retrain_source", source="base_model", reason="active model not found")
 
-    texts, labels = build_training_examples(feedback_items, base_dataset_path)
-    train_texts, train_labels, val_texts, val_labels = train_val_split(texts, labels)
+    if train_texts is None or train_labels is None or val_texts is None or val_labels is None:
+        texts, labels = build_training_examples(feedback_items, base_dataset_path)
+        train_texts, train_labels, val_texts, val_labels = train_val_split(texts, labels)
 
     logger.info(
         "retrain_start",

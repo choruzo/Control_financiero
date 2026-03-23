@@ -2,14 +2,18 @@
 
 import uuid
 
+import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.account import Account
+from app.models.category import Category
 from app.models.transaction import Transaction
 from app.schemas.imports import ImportResult, ImportRowResult, ImportRowStatus
 from app.utils.csv_parser import parse_openbank_csv
+
+logger = structlog.get_logger(__name__)
 
 
 async def _verify_account_owner(
@@ -114,6 +118,35 @@ async def import_transactions_from_csv(
             )
             db.add(transaction)
             await db.flush()
+
+            # Intentar auto-categorización via ML (degradación graceful)
+            try:
+                from app.config import settings
+                from app.services.ml_client import MLClient
+
+                ml_client = MLClient(base_url=settings.ml_service_url)
+                prediction = await ml_client.predict(description=parsed.description)
+
+                if prediction.ml_available and prediction.auto_assigned and prediction.category_name:
+                    cat_result = await db.execute(
+                        select(Category).where(
+                            Category.name == prediction.category_name,
+                            Category.is_system.is_(True),
+                        )
+                    )
+                    category = cat_result.scalar_one_or_none()
+                    if category:
+                        transaction.category_id = category.id
+                        await db.flush()
+                        logger.debug(
+                            "import_ml_auto_assigned",
+                            description=parsed.description,
+                            category=prediction.category_name,
+                            confidence=prediction.confidence,
+                        )
+            except Exception as exc:
+                logger.warning("import_ml_categorization_failed", error=str(exc))
+
             transaction_id = transaction.id
         else:
             transaction_id = None
