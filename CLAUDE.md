@@ -346,6 +346,21 @@ Con la **Fase 5.4** se han añadido:
 - `frontend/tests/unit/budgets-store.test.ts` — 8 tests del store (caché, historial, degradación parcial, CRUD)
 - `frontend/tests/unit/budget-card.test.ts` — 6 tests del componente (badges, porcentaje, evento edit)
 
+Con la **Fase 5.5** se han añadido:
+
+- `frontend/src/lib/types.ts` — Añadidos tipos de inversiones: `InvestmentType`, `InterestType`, `CompoundingFrequency`, `InvestmentResponse`, `InvestmentCreate`, `InvestmentUpdate`, `InvestmentStatusResponse`, `InvestmentSummaryResponse`
+- `frontend/src/lib/api/investments.ts` — 8 funciones: `getInvestmentSummary`, `getInvestments` (filtros: `investment_type`, `is_active`), `getInvestment`, `getInvestmentStatus`, `createInvestment`, `updateInvestment`, `deleteInvestment`, `renewInvestment`
+- `frontend/src/lib/api/index.ts` — Re-exporta `investmentsApi`
+- `frontend/src/lib/stores/investments.ts` — `investmentsStore`: carga inversiones + summary en paralelo (Promise.allSettled), caché 60s, métodos `setTypeFilter`/`createInvestment`/`updateInvestment`/`deleteInvestment`/`renewInvestment`; derivados: `investmentsData` (filtrado por tipo), `investmentsSummary`, `investmentsLoading`, `investmentsError`, `investmentsTypeFilter`, `investmentsMaturingSoon` (vencen en ≤30 días)
+- `frontend/src/lib/components/investments/InvestmentCard.svelte` — Card con badge por tipo (deposit=azul/fund=verde/stock=naranja/bond=morado), badge "Vence pronto" (≤30 días), rendimiento cargado bajo demanda vía `getInvestmentStatus` en `onMount`, confirmación inline de borrado, botón Renovar (si tiene maturity_date y renewal_period_months)
+- `frontend/src/lib/components/investments/InvestmentForm.svelte` — Modal crear/editar: tipo/capital/interés simple-compuesto/frecuencia capitalización/fechas/renovación automática/valor actual/cuenta/notas; validaciones client-side; tipo y capital deshabilitados en edición
+- `frontend/src/lib/components/investments/MaturityTimeline.svelte` — Gráfico ECharts Gantt (barras horizontales): eje Y=nombres, eje X=fechas, colores por tipo, línea vertical "Hoy", tooltip con capital y días restantes; importación dinámica + ResizeObserver
+- `frontend/src/routes/(app)/investments/+page.ts` — Stub load (ssr: false)
+- `frontend/src/routes/(app)/investments/+page.svelte` — Página completa: 4 KPIs (capital/valor actual/rendimiento/nº activas + aviso vencimientos próximos), filtros pill por tipo, grid responsive de InvestmentCards, estado vacío, MaturityTimeline (solo si hay inversiones con vencimiento), modal InvestmentForm
+- `frontend/tests/unit/investments-api.test.ts` — 8 tests de funciones API
+- `frontend/tests/unit/investments-store.test.ts` — 8 tests del store (caché, forceRefresh, CRUD, degradación parcial)
+- `frontend/tests/unit/investment-card.test.ts` — 6 tests del componente (badges, skeleton, eventos edit/delete)
+
 ## Validación con tests
 
 **Todo cambio o implementación debe ir acompañado de tests.** Antes de considerar cualquier tarea completada:

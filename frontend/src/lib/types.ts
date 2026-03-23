@@ -232,6 +232,78 @@ export interface ImportResult {
 	rows: ImportRowResult[];
 }
 
+// ── Investments ───────────────────────────────────────────────────────────────
+export type InvestmentType = 'deposit' | 'fund' | 'stock' | 'bond';
+export type InterestType = 'simple' | 'compound';
+export type CompoundingFrequency = 'annually' | 'quarterly' | 'monthly';
+
+export interface InvestmentResponse {
+	id: string;
+	user_id: string;
+	account_id: string | null;
+	name: string;
+	investment_type: InvestmentType;
+	principal_amount: number;
+	interest_rate: number;
+	interest_type: InterestType;
+	compounding_frequency: CompoundingFrequency | null;
+	current_value: number | null;
+	start_date: string; // YYYY-MM-DD
+	maturity_date: string | null;
+	auto_renew: boolean;
+	renewal_period_months: number | null;
+	renewals_count: number;
+	notes: string | null;
+	is_active: boolean;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface InvestmentCreate {
+	name: string;
+	investment_type: InvestmentType;
+	principal_amount: number;
+	interest_rate: number;
+	interest_type: InterestType;
+	start_date: string;
+	compounding_frequency?: CompoundingFrequency;
+	maturity_date?: string;
+	auto_renew?: boolean;
+	renewal_period_months?: number;
+	current_value?: number;
+	account_id?: string;
+	notes?: string;
+}
+
+export interface InvestmentUpdate {
+	name?: string;
+	interest_rate?: number;
+	maturity_date?: string;
+	auto_renew?: boolean;
+	renewal_period_months?: number;
+	current_value?: number;
+	notes?: string;
+	is_active?: boolean;
+}
+
+export interface InvestmentStatusResponse {
+	investment: InvestmentResponse;
+	accrued_interest: number;
+	total_return: number;
+	return_percentage: number;
+	days_held: number;
+	days_to_maturity: number | null;
+}
+
+export interface InvestmentSummaryResponse {
+	total_investments: number;
+	total_principal: number;
+	total_current_value: number;
+	total_return: number;
+	average_return_percentage: number;
+	by_type: Record<string, number>;
+}
+
 // ── Dashboard agregado ────────────────────────────────────────────────────────
 export interface DashboardData {
 	overview: OverviewData;

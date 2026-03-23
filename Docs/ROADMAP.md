@@ -207,10 +207,10 @@ updated: 2026-03-22
 - [x] Formulario de creación/edición de presupuesto
 - [x] Comparativa mes actual vs. meses anteriores
 
-### 5.5 Inversiones
-- [ ] Lista de depósitos/fondos con rendimiento
-- [ ] Timeline de vencimientos
-- [ ] Resumen de rendimiento total
+### 5.5 Inversiones ✅
+- [x] Lista de depósitos/fondos con rendimiento
+- [x] Timeline de vencimientos
+- [x] Resumen de rendimiento total
 
 ### 5.6 Simulador Hipotecario
 - [ ] Formulario interactivo (precio, entrada, tipo, plazo)
