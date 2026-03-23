@@ -29,6 +29,7 @@
 
 	// Estado ML
 	let mlSuggestedCategoryId = '';
+	let mlSuggestedCategoryName = '';
 	let mlConfidence = 0;
 	let showMlBadge = false;
 
@@ -36,8 +37,18 @@
 	let isSaving = false;
 	let error = '';
 
-	// Inicializar con los datos de la transacción a editar
-	$: if (show) {
+	// Flag para inicializar el formulario una sola vez por apertura del modal.
+	// Evita que actualizaciones del prop `accounts` (carga del store) re-ejecuten
+	// la inicialización y borren lo que el usuario está escribiendo.
+	let _initialized = false;
+
+	// Bloque 1: resetea el flag cuando el modal se cierra.
+	$: if (!show) _initialized = false;
+
+	// Bloque 2: inicializa los campos al abrir el modal.
+	// NO referencia `accounts` → no se re-ejecuta cuando el store carga las cuentas.
+	$: if (show && !_initialized) {
+		_initialized = true;
 		if (transaction) {
 			accountId = transaction.account_id;
 			description = transaction.description;
@@ -48,9 +59,9 @@
 			isRecurring = transaction.is_recurring;
 			notes = '';
 			showMlBadge = false;
+			mlSuggestedCategoryName = '';
 		} else {
-			// Limpiar para nueva transacción
-			accountId = accounts[0]?.id ?? '';
+			accountId = '';   // se asigna en el bloque 3 cuando accounts esté disponible
 			description = '';
 			amount = '';
 			transactionType = 'expense';
@@ -60,8 +71,15 @@
 			recurrenceRule = '';
 			notes = '';
 			showMlBadge = false;
+			mlSuggestedCategoryName = '';
 			error = '';
 		}
+	}
+
+	// Bloque 3: asigna la cuenta por defecto en cuanto se cargan las cuentas.
+	// Solo actúa si el modal está abierto, es una nueva transacción y aún no hay cuenta.
+	$: if (show && !transaction && accountId === '' && accounts.length > 0) {
+		accountId = accounts[0].id;
 	}
 
 	// Importar la función de transacciones dinámicamente para evitar dependencias circulares en tests
@@ -72,7 +90,8 @@
 		try {
 			const { apiFetchJson } = await import('$lib/api/client');
 			const result = await apiFetchJson<{
-				category_id: string | null;
+				category_id: number | null;
+				category_name: string | null;
 				confidence: number;
 				status: string;
 			}>('/api/v1/ml/predict', {
@@ -80,11 +99,15 @@
 				body: JSON.stringify({ description: description.trim() })
 			});
 
-			if (result.category_id && result.confidence > 0.5) {
-				mlSuggestedCategoryId = result.category_id;
-				mlConfidence = result.confidence;
-				categoryId = result.category_id;
-				showMlBadge = true;
+			if (result.category_name && result.confidence > 0.5) {
+				const matchedCat = categories.find(c => c.name === result.category_name);
+				if (matchedCat) {
+					mlSuggestedCategoryId = matchedCat.id;
+					mlSuggestedCategoryName = matchedCat.name;
+					mlConfidence = result.confidence;
+					categoryId = matchedCat.id;
+					showMlBadge = true;
+				}
 			}
 		} catch {
 			// Sugerencia ML es best-effort
@@ -231,7 +254,7 @@
 						Categoría
 						{#if showMlBadge}
 							<span class="badge variant-filled-warning text-xs">
-								💡 Sugerida por IA ({Math.round(mlConfidence * 100)}%)
+								💡 {mlSuggestedCategoryName} sugerida por IA ({Math.round(mlConfidence * 100)}%)
 							</span>
 						{/if}
 					</span>
@@ -301,3 +324,4 @@
 		</div>
 	</div>
 {/if}
+
