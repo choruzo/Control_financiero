@@ -237,6 +237,10 @@ def run_incremental_retrain(
     )
 
     best_accuracy = 0.0
+    patience = 3          # epochs sin mejora antes de parar
+    no_improve_count = 0
+    best_checkpoint_path = output_path / "_best_ckpt"
+
     for epoch in range(1, epochs + 1):
         model.train()
         total_loss = 0.0
@@ -254,19 +258,44 @@ def run_incremental_retrain(
             total_loss += outputs.loss.item()
 
         accuracy = evaluate(model, val_loader, device)
+        improved = accuracy > best_accuracy
         logger.info(
             "retrain_epoch",
             epoch=epoch,
             epochs=epochs,
             val_accuracy=round(accuracy, 4),
             avg_loss=round(total_loss / max(len(train_loader), 1), 4),
+            best=improved,
         )
-        if accuracy > best_accuracy:
+        if improved:
             best_accuracy = accuracy
+            no_improve_count = 0
+            # Guardar el mejor checkpoint hasta ahora
+            best_checkpoint_path.mkdir(parents=True, exist_ok=True)
+            model.save_pretrained(str(best_checkpoint_path))
+            tokenizer.save_pretrained(str(best_checkpoint_path))
+        else:
+            no_improve_count += 1
+            if no_improve_count >= patience:
+                logger.info(
+                    "early_stop",
+                    epoch=epoch,
+                    patience=patience,
+                    best_accuracy=round(best_accuracy, 4),
+                )
+                break
 
+    # Restaurar el mejor checkpoint como modelo final
     output_path.mkdir(parents=True, exist_ok=True)
-    model.save_pretrained(str(output_path))
-    tokenizer.save_pretrained(str(output_path))
+    if best_checkpoint_path.exists():
+        import shutil
+        # Copiar archivos del mejor checkpoint al output final
+        for f in best_checkpoint_path.iterdir():
+            shutil.copy2(f, output_path / f.name)
+        shutil.rmtree(best_checkpoint_path)
+    else:
+        model.save_pretrained(str(output_path))
+        tokenizer.save_pretrained(str(output_path))
 
     new_version = get_next_version(current_version)
     metadata = {
