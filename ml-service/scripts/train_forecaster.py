@@ -53,7 +53,7 @@ def build_windows(
 def train(
     dataset: list[list[list[float]]],
     output_path: Path,
-    epochs: int = 20,
+    epochs: int = 25,
     batch_size: int = 32,
     device: str = "cpu",
     lr: float = 1e-3,

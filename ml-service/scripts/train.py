@@ -101,7 +101,7 @@ def main(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fine-tuning DistilBERT para categorización")
     parser.add_argument("--model-path", default="/app/models", help="Directorio de salida del modelo")
-    parser.add_argument("--epochs", type=int, default=10, help="Número de epochs de entrenamiento")
+    parser.add_argument("--epochs", type=int, default=25, help="Número de epochs de entrenamiento")
     parser.add_argument("--batch-size", type=int, default=16, help="Tamaño del batch")
     parser.add_argument("--device", default=None, help="Device: cpu o cuda (auto-detecta si no se indica)")
     parser.add_argument("--extra-data", default=None, help="JSON con ejemplos reales adicionales")
