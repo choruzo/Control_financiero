@@ -114,6 +114,7 @@ Request → CORS Middleware → api/v1/{dominio}
 - **Fase 5.8** — Página de configuración: perfil + cuentas, categorías CRUD, configuración fiscal IRPF, preferencias UI.
 - **Fase 6.1** — Infraestructura de producción: Nginx reverse proxy con SSL local (mkcert), backups automáticos de PostgreSQL (pg_dump + crond), health checks completos en todos los contenedores, `docker-compose.yml` de producción optimizado (sin bind mounts, workers múltiples, sin puertos expuestos directos), `frontend/Dockerfile.prod` con build multi-stage (adapter-node), documentación de despliegue en `Docs/DEPLOYMENT.md`.
 - **Fase 6.2** — Calidad: coverage backend con umbral 80% (`backend/pyproject.toml`), ESLint + Prettier para frontend (`frontend/eslint.config.js`, `frontend/.prettierrc`), tests E2E con Playwright (`frontend/playwright.config.ts`, `frontend/tests/e2e/`), CI con GitHub Actions 3 jobs (backend, frontend, ml-service lint) en `.github/workflows/ci.yml`.
+- **Fase 6.3** — Documentación: `README.md` completo con badges, características, quickstart, estructura del proyecto y links a docs; `CONTRIBUTING.md` con flujo fork/PR, estándares Ruff/ESLint, convención de commits y checklist pre-PR; `LICENSE` MIT; `Docs/ROADMAP.md` actualizado con fase 6.3 completada.
 
 Los módulos `utils/` financieros (TIR, VAN) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan completo.
 

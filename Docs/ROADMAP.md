@@ -253,12 +253,12 @@ updated: 2026-03-22
 - [x] Linter + formatter (Ruff para Python, ESLint + Prettier para Svelte) — `frontend/eslint.config.js`, `frontend/.prettierrc`
 - [x] CI con GitHub Actions (tests + lint) — `.github/workflows/ci.yml` (3 jobs: backend, frontend, ml-service)
 
-### 6.3 Documentación
-- [ ] README completo con screenshots
-- [ ] Guía de instalación paso a paso
-- [ ] Documentación API (auto-generada por FastAPI + complementos)
-- [ ] CONTRIBUTING.md para open source
-- [ ] LICENSE (MIT o Apache 2.0)
+### 6.3 Documentación ✅
+- [x] README completo con screenshots
+- [x] Guía de instalación paso a paso
+- [x] Documentación API (auto-generada por FastAPI + complementos)
+- [x] CONTRIBUTING.md para open source
+- [x] LICENSE (MIT o Apache 2.0)
 
 ### 6.4 Mejoras UX
 - [ ] Responsive design (tablet/móvil)
