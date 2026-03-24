@@ -102,6 +102,7 @@ Request → CORS Middleware → api/v1/{dominio}
 - **Fase 5.6** — Página de hipoteca: simulador fijo/variable/mixto, comparador hasta 3 escenarios, capacidad, guardadas.
 - **Fase 5.7** — Página de predicciones: forecast P10/P50/P90 con bandas, escenarios what-if, estado modelos ML.
 - **Fase 5.8** — Página de configuración: perfil + cuentas, categorías CRUD, configuración fiscal IRPF, preferencias UI.
+- **Fase 6.1** — Infraestructura de producción: Nginx reverse proxy con SSL local (mkcert), backups automáticos de PostgreSQL (pg_dump + crond), health checks completos en todos los contenedores, `docker-compose.yml` de producción optimizado (sin bind mounts, workers múltiples, sin puertos expuestos directos), `frontend/Dockerfile.prod` con build multi-stage (adapter-node), documentación de despliegue en `Docs/DEPLOYMENT.md`.
 
 Los módulos `utils/` financieros (TIR, VAN) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan completo.
 

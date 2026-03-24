@@ -45,6 +45,10 @@ logs/
 # Backups
 backups/
 
+# Certificados SSL locales (generados con mkcert, no commitear)
+nginx/certs/*.pem
+nginx/certs/*.key
+
 # Coverage
 htmlcov/
 .coverage

@@ -240,12 +240,12 @@ updated: 2026-03-22
 ## FASE 6: Pulido y Producción
 **Objetivo:** Preparar para uso diario estable.
 
-### 6.1 Infraestructura
-- [ ] Nginx como reverse proxy con SSL local (mkcert)
-- [ ] Backups automáticos de PostgreSQL (pg_dump + cron en Docker)
-- [ ] Health checks en todos los contenedores
-- [ ] docker-compose.yml de producción optimizado
-- [ ] Documentación de despliegue
+### 6.1 Infraestructura ✅
+- [x] Nginx como reverse proxy con SSL local (mkcert) — `nginx/nginx.prod.conf`, `scripts/generate-certs.sh`
+- [x] Backups automáticos de PostgreSQL (pg_dump + crond en Docker) — `scripts/pg-backup.sh`, servicio `postgres-backup`
+- [x] Health checks en todos los contenedores — backend (`curl /health`), celery-worker/beat (`celery inspect ping`)
+- [x] docker-compose.yml de producción optimizado — sin bind mounts, 4 workers uvicorn, puertos solo en nginx
+- [x] Documentación de despliegue — `Docs/DEPLOYMENT.md`
 
 ### 6.2 Calidad
 - [ ] Coverage de tests > 80% backend

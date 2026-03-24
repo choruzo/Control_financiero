@@ -1,0 +1,25 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+# ── Imagen final ──────────────────────────────────────────────────────────────
+FROM node:20-alpine
+
+WORKDIR /app
+
+# adapter-node genera una carpeta build/ autocontenida
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/package.json ./
+
+EXPOSE 3000
+
+ENV PORT=3000 \
+    HOST=0.0.0.0
+
+CMD ["node", "build"]
