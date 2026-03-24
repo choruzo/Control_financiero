@@ -48,6 +48,20 @@ ignore = ["B008"]  # FastAPI uses Depends() in argument defaults by design
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+addopts = "--cov=app --cov-report=term-missing --cov-report=xml"
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "app/__init__.py",
+    "*/migrations/*",
+    "*/alembic/*",
+]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_covered = false
 
 [build-system]
 requires = ["setuptools>=75.0"]

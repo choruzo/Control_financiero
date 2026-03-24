@@ -18,10 +18,20 @@ docker compose -f docker-compose.dev.yml exec backend pytest
 docker compose -f docker-compose.dev.yml exec backend pytest tests/test_auth.py -v
 docker compose -f docker-compose.dev.yml exec backend pytest --cov=app
 
-# Lint y formato (Ruff)
+# Lint y formato (Ruff — Python)
 docker compose -f docker-compose.dev.yml exec backend ruff check app/
 docker compose -f docker-compose.dev.yml exec backend ruff format app/
 docker compose -f docker-compose.dev.yml exec backend ruff check --fix app/
+
+# Lint y formato (ESLint + Prettier — Frontend)
+cd frontend && npm run lint
+cd frontend && npm run lint:fix
+cd frontend && npm run format
+cd frontend && npm run format:check
+
+# Tests E2E (Playwright)
+cd frontend && npm run test:e2e
+cd frontend && npm run test:e2e:ui   # modo interactivo
 
 # Sin Docker
 cd backend && python3.12 -m venv venv && source venv/bin/activate
@@ -103,6 +113,7 @@ Request → CORS Middleware → api/v1/{dominio}
 - **Fase 5.7** — Página de predicciones: forecast P10/P50/P90 con bandas, escenarios what-if, estado modelos ML.
 - **Fase 5.8** — Página de configuración: perfil + cuentas, categorías CRUD, configuración fiscal IRPF, preferencias UI.
 - **Fase 6.1** — Infraestructura de producción: Nginx reverse proxy con SSL local (mkcert), backups automáticos de PostgreSQL (pg_dump + crond), health checks completos en todos los contenedores, `docker-compose.yml` de producción optimizado (sin bind mounts, workers múltiples, sin puertos expuestos directos), `frontend/Dockerfile.prod` con build multi-stage (adapter-node), documentación de despliegue en `Docs/DEPLOYMENT.md`.
+- **Fase 6.2** — Calidad: coverage backend con umbral 80% (`backend/pyproject.toml`), ESLint + Prettier para frontend (`frontend/eslint.config.js`, `frontend/.prettierrc`), tests E2E con Playwright (`frontend/playwright.config.ts`, `frontend/tests/e2e/`), CI con GitHub Actions 3 jobs (backend, frontend, ml-service lint) en `.github/workflows/ci.yml`.
 
 Los módulos `utils/` financieros (TIR, VAN) siguen sin implementar. Ver `Docs/ROADMAP.md` para el plan completo.
 
@@ -126,5 +137,8 @@ Con cada cambio significativo actualizar:
 
 - Variables de entorno en `.env` (copiar desde `.env.example`). La clase `Settings` en `config.py` las carga automáticamente.
 - Ruff con `line-length = 100`, target Python 3.12, reglas: E, F, I, N, W, UP, B, SIM.
-- pytest con `asyncio_mode = "auto"`, tests en `backend/tests/`.
+- pytest con `asyncio_mode = "auto"`, tests en `backend/tests/`; coverage `fail_under = 80`.
+- ESLint (flat config v9) + Prettier en `frontend/`; scripts: `npm run lint`, `npm run format:check`.
+- Playwright E2E en `frontend/tests/e2e/`; script: `npm run test:e2e`.
+- CI en `.github/workflows/ci.yml`: 3 jobs (backend tests+lint, frontend lint+test+e2e, ml-service lint).
 - Documentación detallada en `Docs/ARCHITECTURE.md`; plan de desarrollo en `Docs/ROADMAP.md`.

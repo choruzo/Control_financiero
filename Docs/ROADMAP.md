@@ -247,11 +247,11 @@ updated: 2026-03-22
 - [x] docker-compose.yml de producción optimizado — sin bind mounts, 4 workers uvicorn, puertos solo en nginx
 - [x] Documentación de despliegue — `Docs/DEPLOYMENT.md`
 
-### 6.2 Calidad
-- [ ] Coverage de tests > 80% backend
-- [ ] Tests E2E frontend (Playwright)
-- [ ] Linter + formatter (Ruff para Python, ESLint + Prettier para Svelte)
-- [ ] CI con GitHub Actions (tests + lint)
+### 6.2 Calidad ✅
+- [x] Coverage de tests > 80% backend — `[tool.coverage.report] fail_under = 80` en `backend/pyproject.toml`
+- [x] Tests E2E frontend (Playwright) — `frontend/playwright.config.ts`, tests en `frontend/tests/e2e/`
+- [x] Linter + formatter (Ruff para Python, ESLint + Prettier para Svelte) — `frontend/eslint.config.js`, `frontend/.prettierrc`
+- [x] CI con GitHub Actions (tests + lint) — `.github/workflows/ci.yml` (3 jobs: backend, frontend, ml-service)
 
 ### 6.3 Documentación
 - [ ] README completo con screenshots
