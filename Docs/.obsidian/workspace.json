@@ -25,10 +25,14 @@
             "id": "a8a659ae50a89768",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Vista gráfica"
+              "type": "markdown",
+              "state": {
+                "file": "TESTING.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "TESTING"
             }
           }
         ],
@@ -196,6 +200,15 @@
   },
   "active": "a8a659ae50a89768",
   "lastOpenFiles": [
+    "screenshots/configuracion.png",
+    "screenshots/predicciones.png",
+    "screenshots/hipoteca.png",
+    "screenshots/inversiones.png",
+    "screenshots/presupuestos.png",
+    "screenshots/transacciones.png",
+    "screenshots/dashboard.png",
+    "screenshots",
+    "ROADMAP.md.tmp.17868.1774345609606",
     "API_REFERENCE.md",
     "ML_SERVICE.md",
     "TESTING.md",

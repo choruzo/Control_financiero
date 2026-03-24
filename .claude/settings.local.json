@@ -89,7 +89,30 @@
       "mcp__chrome-devtools__wait_for",
       "Bash(timeout 4 ping -n 4 127.0.0.1)",
       "mcp__chrome-devtools__get_console_message",
-      "Bash(timeout 3 ping -n 3 127.0.0.1)"
+      "Bash(timeout 3 ping -n 3 127.0.0.1)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_select_option",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_console_messages",
+      "Bash(python -c \"import json; data=json.load\\(open\\(''ml-service/data/real_dataset.json''\\)\\); print\\(f''Total: {len\\(data\\)}''\\); from collections import Counter; c=Counter\\(d[\"\"label\"\"] for d in data\\); [print\\(f''  {k}: {v}''\\) for k,v in sorted\\(c.items\\(\\)\\)]\")",
+      "Bash(python -c \"import json; data = json.load\\(open\\(''D:/Archivos/Javier/Scritp_python/Control_financiero/ml-service/data/real_dataset.json'', encoding=''utf-8''\\)\\); print\\(f''Total entradas: {len\\(data\\)}''\\); from collections import Counter; labels = Counter\\(d[\"\"label\"\"] for d in data\\); print\\(''Por categoría:''\\); [print\\(f''  {k}: {v}''\\) for k,v in sorted\\(labels.items\\(\\)\\)]\")",
+      "Bash(python data/merge_datasets.py)",
+      "Bash(python \"D:/Archivos/Javier/Scritp_python/Control_financiero/ml-service/data/merge_datasets.py\")",
+      "Bash(python -c \"import json; data = json.load\\(open\\(''D:/Archivos/Javier/Scritp_python/Control_financiero/ml-service/data/dataset.json'', encoding=''utf-8''\\)\\); from collections import Counter; c = Counter\\(d[''label''] for d in data\\); print\\(f''Total: {len\\(data\\)}''\\); [print\\(f''  {k}: {v}''\\) for k,v in sorted\\(c.items\\(\\)\\)]\")",
+      "Bash(python -c \":*)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec fincontrol-api python scripts/export_training_data.py --output /app/real_dataset_export.json)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec fincontrol-api python scripts/export_training_data.py --output /tmp/real_dataset_export.json)",
+      "Bash(MSYS_NO_PATHCONV=1 docker cp fincontrol-api:/tmp/real_dataset_export.json \"D:/Archivos/Javier/Scritp_python/Control_financiero/ml-service/data/real_dataset_export.json\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec fincontrol-ml python scripts/label_csv.py --csv /app/data/movimientos.csv --dataset /app/data/real_dataset.json)",
+      "Bash(MSYS_NO_PATHCONV=1 docker cp fincontrol-ml:/app/data/manual_review.json \"D:/Archivos/Javier/Scritp_python/Control_financiero/ml-service/data/manual_review.json\")",
+      "Skill(ship:ship)",
+      "Skill(ship:ship:*)",
+      "Bash(python -c \"from PIL import Image, ImageDraw; print\\(''Pillow OK''\\)\")"
     ]
   }
 }
